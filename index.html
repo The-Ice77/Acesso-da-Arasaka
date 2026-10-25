@@ -31,6 +31,669 @@
   <div class="crt-scanlines"></div>
   <div class="crt-vignette"></div>
 
+  <!-- =========================================================
+       TERMINAL BOOT / OPENING PROCESS OVERLAY (ARASAKA LOGO EM BITS)
+       Digitalização da Logo da Arasaka em Bits e Processo de Abertura
+       ========================================================= -->
+  <div id="terminal-boot-overlay" class="terminal-boot-screen">
+    <div class="boot-top-banner">
+      <div class="boot-title-wrap">
+        <span class="boot-tag-badge">ARASAKA MNL</span>
+        <div class="boot-title-text">[TERMINAL BOOT SEQUENCE // DIGITALIZAÇÃO DA LOGO ARASAKA EM BITS]</div>
+      </div>
+      <div class="boot-controls-wrap">
+        <button type="button" class="boot-action-btn" id="btn-boot-rescan" title="Reiniciar digitalização da logo em bits">
+          ⟲ [RE-DIGITALIZAR LOGO]
+        </button>
+        <button type="button" class="boot-action-btn primary" id="btn-boot-skip">
+          ⚡ [ENTRAR NO TERMINAL &gt;&gt;]
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Stage: Arasaka Logo Digitization in Bits & Terminal Boot Log -->
+    <div class="boot-logo-stage-wrap">
+      <div class="boot-logo-header">
+        <div class="boot-logo-label">// ARASAKA_CORP_IDENTITY_MATRIX // BIT-BY-BIT DIGITALIZATION</div>
+        <div class="boot-logo-stats" id="boot-logo-stats">DIGITALIZANDO LOGO ARASAKA EM BITS: 0%</div>
+      </div>
+
+      <div class="boot-logo-canvas-container">
+        <canvas id="boot-logo-canvas"></canvas>
+        <div class="boot-logo-watermark-tag">
+          SOURCE: Arasaka_Logo_CP2077.webp // PROTOCOL: BINARY MATRIX CODEC (0/1)
+        </div>
+      </div>
+
+      <div class="boot-terminal-log" id="boot-terminal-log">
+        <!-- Lines streamed via JS -->
+      </div>
+    </div>
+
+    <!-- Bottom Boot Progress Bar & Enter Button -->
+    <div class="boot-bottom-strip">
+      <div class="boot-progress-wrap">
+        <div class="boot-status-label" id="boot-status-text">
+          PROCESSO DE ABERTURA: DIGITALIZANDO LOGO DA ARASAKA EM BITS... 0%
+        </div>
+        <div class="boot-progress-bar">
+          <div class="boot-progress-fill" id="boot-progress-fill"></div>
+        </div>
+      </div>
+      <button type="button" class="boot-action-btn primary" id="btn-boot-enter-main">
+        ⚡ [AVANÇAR PARA O TERMINAL &gt;&gt;]
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: SECONDARY SECURITY CHALLENGE (AUTENTICAÇÃO SECUNDÁRIA BIO-MÉDICA)
+       Disparada opcionalmente para acessar o Submenu Médico Confidencial
+       ========================================================= -->
+  <div id="modal-secondary-auth" class="secondary-auth-modal">
+    <div class="secondary-auth-card">
+      <div class="secondary-auth-header">
+        <div class="secondary-auth-title">
+          <span class="auth-blink">●</span> [DESAFIO DE SEGURANÇA OMEGA // AUTENTICAÇÃO SECUNDÁRIA]
+        </div>
+        <div class="secondary-auth-header-actions">
+          <span class="secondary-auth-badge">SECURITY LEVEL: OMEGA-AIRGAP</span>
+          <button type="button" class="boot-action-btn danger" id="btn-close-secondary-auth" title="Cancelar e retornar à navegação normal">
+            ✕ [CANCELAR]
+          </button>
+        </div>
+      </div>
+
+      <div class="secondary-auth-body">
+        <div class="secondary-alert-box">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-text">
+            <strong>ACESSO AO SUBMENU MÉDICO RESTRITO:</strong>
+            As credenciais operativas primárias foram aceitas. Contudo, os prontuários hospitalares e a telemetria neural da paciente "Elynalize" (isolada no chip <strong>"Prison"</strong>) exigem a chave secundária de descriptação bio-médica [Nível Ômega]:
+          </div>
+        </div>
+
+        <form id="secondary-auth-form" autocomplete="off">
+          <div class="secondary-input-group">
+            <label for="input-secondary-passkey">
+              <span>CHAVE DE ACESSO SECUNDÁRIA (SENHA NEURAL):</span>
+              <span class="key-hint">[ACESSO NÍVEL ÔMEGA]</span>
+            </label>
+            <div class="cyber-input-wrap">
+              <input
+                type="password"
+                id="input-secondary-passkey"
+                class="cyber-input"
+                placeholder="••••••••••••"
+                spellcheck="false"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="secondary-actions-row">
+            <button type="button" class="autofill-btn secondary-btn" id="btn-auto-secondary" title="Injeta automaticamente a chave neural secundária">
+              ⚡ [INJETAR CHAVE NEURAL]
+            </button>
+            <button type="submit" class="breach-submit-btn secondary-submit" id="btn-submit-secondary">
+              LIBERAR PRONTUÁRIOS MÉDICOS &gt;&gt;
+            </button>
+          </div>
+        </form>
+
+        <div class="secondary-feedback" id="secondary-feedback-msg">
+          INFORME A CHAVE DE ACESSO SECUNDÁRIA PARA LIBERAR OS PRONTUÁRIOS HOSPITALARES...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: SUBMENU HOSPITALAR & PRONTUÁRIOS BIO-MÉDICOS
+       Submenu opcional organizado em 4 abas explicativas:
+       01. MENTE & CÉREBRO | 02. CORPO EM ESTASE | 03. TOXINAS & COMPOSTOS | 04. DNA & GENOMA
+       ========================================================= -->
+  <div id="modal-neural-hud" class="neural-hud-modal">
+    <div class="neural-hud-container">
+      <!-- Modal Top Header Bar: Arasaka Medical Group Directive -->
+      <div class="neural-hud-header-bar">
+        <div class="hud-header-info">
+          <div class="hud-corp-meta-strip">
+            <span class="hud-corp-code">ARASAKA MEDICAL CORP // TOKYO BIOLABS</span>
+            <span class="hud-status-badge">RESTRICTED ACCESS // LEVEL-9 DIRECTORIAL OMEGA</span>
+            <span class="hud-corp-code">ARCHIVE: #MNL-095-ENG</span>
+          </div>
+          <div class="hud-main-title">ALA HOSPITALAR &amp; PRONTUÁRIOS BIO-MÉDICOS // PACIENTE: ELYNALIZE [X-FORCE_095]</div>
+          <div class="hud-sub-desc">CONSCIENTE ISOLADO NO CHIP "PRISON" (AIR-GAP) // CORPO BIOLÓGICO EM ESTASE CRIOGÊNICA (4.2°C // 72 BPM)</div>
+        </div>
+        <div class="hud-header-controls">
+          <button type="button" class="boot-action-btn cyan" id="btn-hud-show-ref" title="Ver imagem de referência original bla.png">
+            👁️ [REF: BLA.PNG]
+          </button>
+          <button type="button" class="boot-action-btn primary" id="btn-advance-to-fastnav">
+            ⚡ [AVANÇAR PARA STAGE 2 &gt;&gt;]
+          </button>
+          <button type="button" class="boot-action-btn danger" id="btn-close-neural-hud" title="Fechar o submenu hospitalar e retornar ao terminal">
+            ✕ [FECHAR SUBMENU]
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Strip for Medical Reports -->
+      <div class="med-tabs-nav">
+        <button type="button" class="med-tab-btn active" data-med-tab="brain">
+          <span class="tab-icon">🧠</span>
+          <span class="tab-text">01. CÉREBRO &amp; MENTE</span>
+          <span class="tab-tag">[CHIP PRISON]</span>
+        </button>
+        <button type="button" class="med-tab-btn" data-med-tab="body">
+          <span class="tab-icon">🫀</span>
+          <span class="tab-text">02. CORPO EM ESTASE</span>
+          <span class="tab-tag">[72 BPM / 4.2°C]</span>
+        </button>
+        <button type="button" class="med-tab-btn" data-med-tab="toxins">
+          <span class="tab-icon">🧪</span>
+          <span class="tab-text">03. TOXINAS &amp; COMPOSTOS</span>
+          <span class="tab-tag">[MNL-4077]</span>
+        </button>
+        <button type="button" class="med-tab-btn" data-med-tab="dna">
+          <span class="tab-icon">🧬</span>
+          <span class="tab-text">04. DNA &amp; GENOMA</span>
+          <span class="tab-tag">[LOCUS EDG-22]</span>
+        </button>
+      </div>
+
+      <!-- Tab Panels Container -->
+      <div class="med-tab-panel-container">
+        <!-- ================= TAB 1: MENTE & CÉREBRO ================= -->
+        <div class="med-tab-panel active" id="med-panel-brain">
+          <div class="med-panel-split-layout">
+            <!-- Left: Visual Brain Byte Scanner & Synaptic Telemetry -->
+            <div class="med-visual-column">
+              <div class="med-hud-card">
+                <div class="med-hud-header">
+                  <div class="med-hud-title">
+                    <span>TOPIC - BRAIN SCAN &amp; ENGRAM MATRIX</span>
+                    <span style="font-size:0.62rem;color:var(--bw-cyan);">// CÓRTEX ELYNALIZE</span>
+                  </div>
+                  <div class="med-hud-actions">
+                    <span class="med-dots-indicator">■■■■</span>
+                  </div>
+                </div>
+
+                <div class="brain-scan-viewport">
+                  <img src="assets/gif/brain.gif" alt="Cérebro de Elynalize sendo digitalizado" class="brain-gif-element" id="neural-brain-gif" />
+                  <canvas id="neural-brain-byte-canvas"></canvas>
+                </div>
+
+                <div class="brain-byte-stats-strip">
+                  <span id="neural-brain-stats" style="color:var(--bw-cyan);font-weight:bold;">DIGITALIZAÇÃO EM BYTES: 99.4%</span>
+                  <span style="color:#ff8093;">80,935 BYTES // CHIP "PRISON"</span>
+                </div>
+
+                <div class="med-nodes-summary-row">
+                  <span class="node-badge cyan">CÓRTEX: 100% EXTRAÍDO</span>
+                  <span class="node-badge red">HIPOCAMPO: COMPILADO</span>
+                  <span class="node-badge purple">PONTE: CHIP "PRISON"</span>
+                  <span class="node-badge red">TEMPORAL: AIR-GAP</span>
+                </div>
+              </div>
+
+              <!-- Extra Telemetry: EEG Brainwave Frequencies -->
+              <div class="med-extra-card">
+                <div class="med-extra-header">// MONITOR DE ONDAS ENCEFÁLICAS (EEG) — CÓRTEX FÍSICO</div>
+                <div class="eeg-bands-grid">
+                  <div class="eeg-band-row">
+                    <span class="eeg-band-name">ALPHA (8–12 Hz):</span>
+                    <div class="eeg-meter-track"><div class="eeg-meter-bar zero" style="width:0%;"></div></div>
+                    <span class="eeg-val">0.00 Hz [INATIVO]</span>
+                  </div>
+                  <div class="eeg-band-row">
+                    <span class="eeg-band-name">BETA (13–30 Hz):</span>
+                    <div class="eeg-meter-track"><div class="eeg-meter-bar zero" style="width:0%;"></div></div>
+                    <span class="eeg-val">0.00 Hz [INATIVO]</span>
+                  </div>
+                  <div class="eeg-band-row">
+                    <span class="eeg-band-name">THETA (4–7 Hz):</span>
+                    <div class="eeg-meter-track"><div class="eeg-meter-bar zero" style="width:0%;"></div></div>
+                    <span class="eeg-val">0.00 Hz [INATIVO]</span>
+                  </div>
+                  <div class="eeg-band-row">
+                    <span class="eeg-band-name">CHIP "PRISON":</span>
+                    <div class="eeg-meter-track"><div class="eeg-meter-bar active" style="width:99%;"></div></div>
+                    <span class="eeg-val active">100.0 GHz [CONSTRUCTO]</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Extra Telemetry: Chip Prison Enclave Specs -->
+              <div class="med-extra-card">
+                <div class="med-extra-header">// ESPECIFICAÇÕES DO HARDWARE DE CONTENÇÃO // CHIP "PRISON"</div>
+                <div class="med-specs-mini-grid">
+                  <div class="spec-cell"><span>CAPACIDADE:</span><strong>128 TB CRISTALINO</strong></div>
+                  <div class="spec-cell"><span>ISOLAMENTO:</span><strong>AIR-GAP MILITAR</strong></div>
+                  <div class="spec-cell"><span>CRIPTOGRAFIA:</span><strong>ARASAKA QUANTUM ICE</strong></div>
+                  <div class="spec-cell"><span>INTEGRIDADE:</span><strong style="color:#00ff88;">99.4% ESTÁVEL</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Detailed Medical Neural Report -->
+            <div class="med-report-column">
+              <div class="medical-report-card">
+                <div class="report-header-stripe">
+                  <div class="report-id-tag">PRONTUÁRIO MÉDICO-NEURAL // REF: SOULKILLER-v4.1</div>
+                  <div class="report-confidential-badge">CONFIDENCIAL // DIRETORIA ARASAKA</div>
+                </div>
+
+                <div class="report-patient-meta">
+                  <div><strong>PACIENTE:</strong> Elynalize [X-FORCE_095]</div>
+                  <div><strong>IDADE BIOLÓGICA:</strong> 24 anos</div>
+                  <div><strong>STATUS NEURAL:</strong> Consciência Desacoplada (0.00% residual no córtex físico)</div>
+                  <div><strong>DESTINO DA MENTE:</strong> Chip Criptografado "Prison" (Setor 09)</div>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 01. PROCEDIMENTO DE SEPARAÇÃO DA MENTE</h4>
+                  <p class="report-paragraph">
+                    A paciente foi submetida ao protocolo de extração de consciência por pulso neuronal destrutivo (Soulkiller v4.1). Todas as ligações eletroquímicas sinápticas foram decompostas em uma matriz de <strong>80.935 bytes</strong> binários e hexadecimais, sem causar carbonização tecidual no encéfalo. Não há atividade psíquica residual remanescente no tecido orgânico.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 02. ANÁLISE DOS LOBOS CEREBRAIS &amp; COGNIÇÃO</h4>
+                  <ul class="report-bullets-list">
+                    <li><strong>Córtex Pré-Frontal:</strong> Traços de personalidade, raciocínio lógico e volição compilados com índice de fidelidade de 99.8%. Ausência total de corrupção memética.</li>
+                    <li><strong>Hipocampo &amp; Memória:</strong> 100% das memórias autobiográficas e habilidades de netrunning avançado foram empacotadas no bloco de dados primário do constructo.</li>
+                    <li><strong>Ponte Neural &amp; Lobo Temporal:</strong> Bloqueados permanentemente via air-gap físico para impedir que a consciência de Elynalize emita sinais ou escape para a rede externa de Night City.</li>
+                  </ul>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 03. ESTADO DO CONSTRUCTO NO CHIP "PRISON"</h4>
+                  <p class="report-paragraph">
+                    O chip com o engrama gravado recebeu o codinome oficial de <strong>"Prison"</strong>. O constructo digital encontra-se lúcido, perfeitamente preservado e estável, sem desenvolver sintomas de fragmentação ou ciberpsicose. Sua reinserção depende de validação executiva da Arasaka.
+                  </p>
+                </div>
+
+                <div class="report-signature-row">
+                  <div class="sig-title">RESPONSÁVEL MÉDICO-NEURAL:</div>
+                  <div class="sig-name">Dr. Hiroshi Yamagata — Chefe de Bio-Engenharia Neural &amp; Projetos Especiais Arasaka Tóquio</div>
+                  <div class="sig-seal">ASSINATURA DIGITAL VALIDADA // HASH: 0x77_SOULKILLER_PRISON</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 2: CORPO EM ESTASE ================= -->
+        <div class="med-tab-panel" id="med-panel-body">
+          <div class="med-panel-split-layout">
+            <!-- Left: Visual Body Silhouette & ECG Monitor -->
+            <div class="med-visual-column">
+              <div class="med-hud-card">
+                <div class="med-hud-header">
+                  <div class="med-hud-title">
+                    <span>SUBJECT - ELYNALIZE [X-FORCE_095]</span>
+                    <span style="font-size:0.62rem;color:#00ff88;">// ESTASE CRIO-NEURAL (4.2°C)</span>
+                  </div>
+                  <span class="med-dots-indicator">● ● ● ○</span>
+                </div>
+
+                <div class="subject-body-viewport">
+                  <div class="height-scale-col">
+                    <span>6.0'</span><span>5.5'</span><span>5.0'</span><span>4.5'</span><span>4.0'</span>
+                    <span>3.5'</span><span>3.0'</span><span>2.5'</span><span>2.0'</span><span>1.5'</span>
+                    <span>1.0'</span><span>0.5'</span><span>0.0'</span>
+                  </div>
+
+                  <div class="body-silhouette-center">
+                    <svg class="body-silhouette-svg" viewBox="0 0 100 230" fill="none">
+                      <ellipse cx="50" cy="22" rx="14" ry="18" fill="rgba(255, 0, 43, 0.45)" stroke="#ff002b" stroke-width="1.5" />
+                      <rect x="46" y="40" width="8" height="8" fill="rgba(255, 0, 43, 0.4)" />
+                      <path d="M30 48 L70 48 L64 125 L36 125 Z" fill="rgba(255, 0, 43, 0.35)" stroke="#ff002b" stroke-width="1.5" />
+                      <path d="M28 48 L16 115 L22 118 L32 60 Z" fill="rgba(255, 0, 43, 0.3)" stroke="#ff002b" stroke-width="1.2" />
+                      <path d="M72 48 L84 115 L78 118 L68 60 Z" fill="rgba(255, 0, 43, 0.3)" stroke="#ff002b" stroke-width="1.2" />
+                      <path d="M36 125 L34 210 L44 210 L48 135 L52 135 L56 210 L66 210 L64 125 Z" fill="rgba(255, 0, 43, 0.35)" stroke="#ff002b" stroke-width="1.5" />
+                      <circle cx="50" cy="22" r="4" fill="#00f0ff" stroke="#fff" stroke-width="1" />
+                      <circle cx="50" cy="65" r="4" fill="#ff002b" stroke="#fff" stroke-width="1" />
+                      <circle cx="50" cy="95" r="3" fill="#b833ff" />
+                      <line x1="50" y1="22" x2="88" y2="12" stroke="#00f0ff" stroke-width="1" stroke-dasharray="2 2"/>
+                      <line x1="88" y1="12" x2="98" y2="12" stroke="#00f0ff" stroke-width="1.5"/>
+                      <line x1="50" y1="65" x2="12" y2="65" stroke="#ff002b" stroke-width="1" stroke-dasharray="2 2"/>
+                      <line x1="12" y1="65" x2="2" y2="65" stroke="#ff002b" stroke-width="1.5"/>
+                    </svg>
+                  </div>
+
+                  <div class="body-status-readout-col">
+                    <div class="body-status-row danger">
+                      <strong>STATUS DO CORPO:</strong>
+                      <span>SEPARADO // SEM ALMA</span>
+                    </div>
+                    <div class="body-status-row">
+                      <strong>ESTADO FÍSICO:</strong>
+                      <span>ESTASE CRIO-NEURAL (4.2°C)</span>
+                    </div>
+                    <div class="body-status-row">
+                      <strong>LOCAL DO CORPO:</strong>
+                      <span>SETOR RESERVADO OFF-SITE</span>
+                    </div>
+                    <div class="body-status-row">
+                      <strong>LOCAL DA MENTE:</strong>
+                      <span>CHIP "PRISON" (GALPÃO 09)</span>
+                    </div>
+                    <div class="body-status-row">
+                      <strong>ATIVIDADE CEREBRAL:</strong>
+                      <span>0.00% (EXTRAÍDA)</span>
+                    </div>
+                    <div class="body-status-row">
+                      <strong>SINTESE VITAL:</strong>
+                      <span style="color:#00ff88;">ESTÁVEL // 72 BPM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bottom: ECG Realtime Osciloscopy -->
+                <div class="ecg-card-wrap">
+                  <div class="med-hud-header" style="margin-bottom:2px;padding-bottom:2px;">
+                    <div class="med-hud-title" style="font-size:0.68rem;">
+                      <span>TOPIC - HEART RATE _ 72 BMPS (ECG EM TEMPO REAL)</span>
+                    </div>
+                    <span style="font-size:0.58rem;color:var(--bw-cyan);">RITMO SINUSAL CONTROLADO</span>
+                  </div>
+                  <div class="ecg-canvas-container">
+                    <canvas id="neural-ecg-canvas"></canvas>
+                  </div>
+                  <div class="ecg-footer-ticker">
+                    <span>RITMO: 72 BPM</span>
+                    <span>PRESSÃO CRIO: 110/70</span>
+                    <span>QRS: 82ms</span>
+                    <span>SpO2: 98.6%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Extra Telemetry: Life-Support System Parameters -->
+              <div class="med-extra-card">
+                <div class="med-extra-header">// SUPORTE DE PERFUSÃO &amp; HOMEOSTASE // CÂMARA #095</div>
+                <div class="med-specs-mini-grid">
+                  <div class="spec-cell"><span>PERFUSÃO TOTAL:</span><strong>4.8 L/min (SINTÉTICO)</strong></div>
+                  <div class="spec-cell"><span>PRESSÃO CRÂNIO:</span><strong>11.8 mmHg [NORMAL]</strong></div>
+                  <div class="spec-cell"><span>SOLUÇÃO CRIO:</span><strong>GLICEROL 98.4%</strong></div>
+                  <div class="spec-cell"><span>RESTAURAÇÃO:</span><strong style="color:#00ff88;">100% RECEPTIVO</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Detailed Somatic Body Report -->
+            <div class="med-report-column">
+              <div class="medical-report-card">
+                <div class="report-header-stripe">
+                  <div class="report-id-tag">BOLETIM DE PRESERVAÇÃO SOMÁTICA // REF: BIO-TARTARUS-095</div>
+                  <div class="report-confidential-badge">SETOR DE CRIOPRESERVAÇÃO</div>
+                </div>
+
+                <div class="report-patient-meta">
+                  <div><strong>UNIDADE DE CONTENÇÃO:</strong> Câmara de Imersão Hermética #095</div>
+                  <div><strong>TEMPERATURA BASAL:</strong> 4.2°C (Hipotermia Profunda Estabilizada)</div>
+                  <div><strong>FREQUÊNCIA CARDÍACA:</strong> 72 BPM constante (marca-passo extracorpóreo)</div>
+                  <div><strong>ESTADO DE CONSCIÊNCIA:</strong> Nulo (Sensação de dor/frio suprimida)</div>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 01. SUPORTE VITAL &amp; HOMEOSTASE CRIOGÊNICA</h4>
+                  <p class="report-paragraph">
+                    O corpo de Elynalize é preservado em um banho de solução crioprotetora sintética rica em polietilenoglicol hidrogenado a 4.2°C. A taxa metabólica basal foi desacelerada em 98%, impedindo a senescência celular, atrofia isquêmica ou degeneração orgânica enquanto a mente e alma estão guardadas no chip "Prison".
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 02. SÍNTESE CARDÍACA ARTIFICIAL (72 BPM)</h4>
+                  <p class="report-paragraph">
+                    A perfusão tecidual contínua é garantida por uma bomba de circulação extracorpórea de grau cirúrgico Arasaka Medical, pulsando a exatos <strong>72 batimentos por minuto</strong>. O fluido carreador de oxigênio sintético assegura que os órgãos vitais (coração, pulmões, fígado e rins) permaneçam 100% vascularizados e intactos.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 03. LAUDO NEUROSSOMÁTICO &amp; RECEPTIVIDADE DO CORPO</h4>
+                  <p class="report-paragraph">
+                    Embora o córtex cerebral esteja descarregado de sua identidade, o tronco encefálico e os reflexos medulares são mantidos em vigília mínima através de microestimulações galvânicas a cada 4 horas. O organismo encontra-se em condições perfeitas de receptividade para reimplante neural imediato, sem risco de paralisia permanente.
+                  </p>
+                </div>
+
+                <div class="report-signature-row">
+                  <div class="sig-title">RESPONSÁVEL PELA CRIOPRESERVAÇÃO:</div>
+                  <div class="sig-name">Dra. Keiko Tanaka — Chefe de Terapia Intensiva &amp; Criogenia Arasaka Health Services</div>
+                  <div class="sig-seal">CONDIÇÃO SOMÁTICA: ESTÁVEL (CLASSE A) // REAVALIAÇÃO EM 24H</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 3: TOXINAS & COMPOSTOS ================= -->
+        <div class="med-tab-panel" id="med-panel-toxins">
+          <div class="med-panel-split-layout">
+            <!-- Left: Formula Vector & Chemical Readouts -->
+            <div class="med-visual-column">
+              <div class="med-hud-card">
+                <div class="med-hud-header">
+                  <div class="med-hud-title">
+                    <span>TOPIC - FORMULA &amp; TOXIN SPECTRUM</span>
+                    <span style="font-size:0.62rem;color:#ff8093;">// FÓRMULA MNL-4077</span>
+                  </div>
+                  <span class="med-dots-indicator">■■■□</span>
+                </div>
+
+                <div class="formula-scan-viewport">
+                  <svg class="formula-svg" viewBox="0 0 160 85">
+                    <line x1="80" y1="42" x2="45" y2="28" stroke="#ff002b" stroke-width="2" />
+                    <line x1="80" y1="42" x2="45" y2="60" stroke="#ff002b" stroke-width="2" />
+                    <line x1="80" y1="42" x2="115" y2="30" stroke="#00f0ff" stroke-width="2" />
+                    <line x1="115" y1="30" x2="145" y2="30" stroke="#00f0ff" stroke-width="2" />
+                    <line x1="80" y1="42" x2="110" y2="65" stroke="#ff002b" stroke-width="2" />
+                    <circle cx="80" cy="42" r="11" fill="#ff002b" stroke="#fff" stroke-width="2"/>
+                    <circle cx="45" cy="28" r="8" fill="#ff5c77" />
+                    <circle cx="45" cy="60" r="7" fill="#ff5c77" />
+                    <circle cx="115" cy="30" r="9" fill="#00f0ff" stroke="#fff" stroke-width="1.5"/>
+                    <circle cx="145" cy="30" r="6" fill="#00f0ff" />
+                    <circle cx="110" cy="65" r="7" fill="#b833ff" />
+                  </svg>
+                </div>
+
+                <div class="toxin-stats-grid">
+                  <div class="toxin-stat-box">
+                    <div class="t-label">COMPOSTO ATIVO:</div>
+                    <div class="t-val">NEURO-CALYX 77 (MNL-4077)</div>
+                  </div>
+                  <div class="toxin-stat-box">
+                    <div class="t-label">ÍNDICE DE TOXINAS CIBERNÉTICAS:</div>
+                    <div class="t-val cyan">0.04 ppm [LIMIAR SEGURO]</div>
+                  </div>
+                  <div class="toxin-stat-box">
+                    <div class="t-label">SUPRESSÃO CONVULSIVA:</div>
+                    <div class="t-val green">100% ESTABILIZADO</div>
+                  </div>
+                  <div class="toxin-stat-box">
+                    <div class="t-label">VIA DE ADMINISTRAÇÃO:</div>
+                    <div class="t-val">CATETER CENTRAL CONTÍNUO</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Extra Telemetry: Biochemical Mass Spectrometry -->
+              <div class="med-extra-card">
+                <div class="med-extra-header">// CROMATOGRAFIA BIOQUÍMICA &amp; NÍVEIS DE SEDATIVO</div>
+                <div class="med-specs-mini-grid">
+                  <div class="spec-cell"><span>BLOQUEIO NMDA:</span><strong>99.9% SATURADO</strong></div>
+                  <div class="spec-cell"><span>CONCENTRAÇÃO:</span><strong>0.18 mg/dL [IDEAL]</strong></div>
+                  <div class="spec-cell"><span>DEPURAÇÃO:</span><strong>HEMODIÁLISE CONTÍNUA</strong></div>
+                  <div class="spec-cell"><span>TOXICIDADE:</span><strong style="color:#00ff88;">0.04 ppm [SEGURO]</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Detailed Pharmacological & Toxicology Report -->
+            <div class="med-report-column">
+              <div class="medical-report-card">
+                <div class="report-header-stripe">
+                  <div class="report-id-tag">LAUDO FARMACOLÓGICO &amp; TOXICOLÓGICO // MNL-4077</div>
+                  <div class="report-confidential-badge">LABORATÓRIO DE BIO-QUÍMICA AVANÇADA</div>
+                </div>
+
+                <div class="report-patient-meta">
+                  <div><strong>AGENTE FARMACOLÓGICO:</strong> Complexo Neuro-Inibidor MNL-4077</div>
+                  <div><strong>MECANISMO DE AÇÃO:</strong> Bloqueador Alostérico de Receptores NMDA e Canais Ca2+</div>
+                  <div><strong>DEPURAÇÃO TOXICOLÓGICA:</strong> Hemodiálise Veno-Venosa Nanofiltrada</div>
+                  <div><strong>CONCENTRAÇÃO SÉRICA:</strong> 0.18 mg/dL (Faixa Terapêutica Alvo)</div>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 01. FINALIDADE TERAPÊUTICA DO COMPOSTO MNL-4077</h4>
+                  <p class="report-paragraph">
+                    Durante o descarregamento da mente para o chip "Prison", o sistema nervoso humano sofre picos paroxísticos de potencial elétrico. A solução <strong>MNL-4077</strong> é injetada para modular o tônus neuroquímico, saturando as terminações nervosas e impedindo a destruição celular decorrente do choque eletromagnético do Soulkiller.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 02. EXPURGO DE TOXINAS CIBERNÉTICAS &amp; SUPERAQUECIMENTO</h4>
+                  <p class="report-paragraph">
+                    Netrunners que realizam mergulhos em redes profundas geram subprodutos tóxicos de superaquecimento em interfaces neurais (óxidos de silício e resíduos de metais pesados). O protocolo de hemodiálise contínua reduziu o índice residual para <strong>0.04 ppm</strong>, eliminando qualquer risco de acidose metabólica ou falência hepatorrenal.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 03. SEDATIVO CRIO-SINÁPTICO &amp; CONTROLE DE DOR</h4>
+                  <p class="report-paragraph">
+                    A fórmula contém analgesia dissociativa de quarta geração que anula completamente a transmissão nociceptiva. Não há registro de sofrimento biológico durante a contenção. O organismo permanece calmo e responsivo aos padrões de equilíbrio eletrolítico estabelecidos pela equipe médica.
+                  </p>
+                </div>
+
+                <div class="report-signature-row">
+                  <div class="sig-title">ESPECIALISTA EM FARMACOLOGIA CIBERNÉTICA:</div>
+                  <div class="sig-name">Dr. Carlos Mendoza — Diretor Sênior de Toxicologia Clínica Arasaka</div>
+                  <div class="sig-seal">LAUDO QUÍMICO CERTIFICADO // MNL-TOX-PASSED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 4: DNA & GENOMA ================= -->
+        <div class="med-tab-panel" id="med-panel-dna">
+          <div class="med-panel-split-layout">
+            <!-- Left: 3D DNA Canvas Viewport & Genetic Readouts -->
+            <div class="med-visual-column">
+              <div class="med-hud-card">
+                <div class="med-hud-header">
+                  <div class="med-hud-title">
+                    <span>TOPIC - DNA CHAIN &amp; GENOMIC MATRIX</span>
+                    <span style="font-size:0.62rem;color:var(--bw-cyan);">// GENOMA ELYNALIZE</span>
+                  </div>
+                  <span class="med-dots-indicator">■■■■</span>
+                </div>
+
+                <div class="dna-scan-viewport">
+                  <canvas id="neural-dna-canvas"></canvas>
+                </div>
+
+                <div class="dna-stats-grid">
+                  <div class="dna-stat-box">
+                    <div class="d-label">PARES DE BASE CATALOGADOS:</div>
+                    <div class="d-val">3.2 BILHÕES // ATCG MATRIZ</div>
+                  </div>
+                  <div class="dna-stat-box">
+                    <div class="d-label">VARIANTE POLIMÓRFICA:</div>
+                    <div class="d-val purple">LOCUS EDG-22 (CROMOSSOMO 7)</div>
+                  </div>
+                  <div class="dna-stat-box">
+                    <div class="d-label">INTEGRIDADE CROMOSSÔMICA:</div>
+                    <div class="d-val cyan">99.82% [LIVRE DE MUTAÇÃO]</div>
+                  </div>
+                  <div class="dna-stat-box">
+                    <div class="d-label">COMPATIBILIDADE SINTÉTICA (FBC):</div>
+                    <div class="d-val green">99.6% ADAPTAÇÃO TOTAL</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Extra Telemetry: Karyotype & Genetic Marker Analysis -->
+              <div class="med-extra-card">
+                <div class="med-extra-header">// ANÁLISE CITOGENÉTICA FORENSE // LOCUS EDG-22</div>
+                <div class="med-specs-mini-grid">
+                  <div class="spec-cell"><span>CARIÓTIPO:</span><strong>46,XX EUPLOIDE</strong></div>
+                  <div class="spec-cell"><span>RUPTURA TELÔMERO:</span><strong>0.01% [PRESERVADO]</strong></div>
+                  <div class="spec-cell"><span>CONDUTIVIDADE:</span><strong>+34% MIELINA</strong></div>
+                  <div class="spec-cell"><span>BLACKWALL NOISE:</span><strong style="color:#00ff88;">0.00% [IMUNE]</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Detailed Genetic & Genomic Report -->
+            <div class="med-report-column">
+              <div class="medical-report-card">
+                <div class="report-header-stripe">
+                  <div class="report-id-tag">MAPA GENÔMICO &amp; LAUDO MOLECULAR // REF: ARASAKA-GEN-095</div>
+                  <div class="report-confidential-badge">DIVISÃO DE GENÉTICA APLICADA</div>
+                </div>
+
+                <div class="report-patient-meta">
+                  <div><strong>CARIÓTIPO:</strong> 46,XX (Genoma Feminino Humano de Alta Compatibilidade)</div>
+                  <div><strong>MARCADOR GENÉTICO CENTRAL:</strong> Locus EDG-22 (Mutação de Alta Tolerância Neural)</div>
+                  <div><strong>ÍNDICE DE RUPTURA TELOMÉRICA:</strong> 0.01% (Preservação Criogênica Perfeita)</div>
+                  <div><strong>RESISTÊNCIA A RADIAÇÃO DIGITAL:</strong> Classe Alfa (Imunidade Contra Ruído Blackwall)</div>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 01. DECOMPOSIÇÃO DO GENOMA DE ELYNALIZE</h4>
+                  <p class="report-paragraph">
+                    O sequenciamento completo do genoma de Elynalize foi transcrito para arquivos de densidade hexadecimal. A integridade estrutural das hélices atinge <strong>99.82%</strong>, comprovando que o cérebro e o corpo da paciente não sofreram desarranjo cromossômico ou mutações oncogênicas ao longo de anos de invasão de rede extrema.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 02. ANOMALIA DO LOCUS EDG-22 (CIBER-RESILIÊNCIA NATURAL)</h4>
+                  <p class="report-paragraph">
+                    O teste de DNA revelou a rara mutação genética <strong>EDG-22</strong> no cromossomo 7q31. Esse marcador sintetiza proteínas de mielinização de condutividade iônica ultrarrápida, o que permitia a Elynalize suportar cabos de mergulho direto de alta amperagem sem sofrer infartos cerebrais imediatos — característica de altíssimo valor de pesquisa para a Arasaka.
+                  </p>
+                </div>
+
+                <div class="report-section-block">
+                  <h4 class="report-section-title">// 03. COMPATIBILIDADE PARA TRANSLADO BIOLÓGICO &amp; FBC</h4>
+                  <p class="report-paragraph">
+                    O perfil imunológico da paciente apresenta índice de compatibilidade histológica de <strong>99.6%</strong> para transplante somático ou integração em carcaças de Conversão de Corpo Inteiro (FBC) de combate. Seu código genético é um modelo ideal para replicação de agentes operacionais de elite.
+                  </p>
+                </div>
+
+                <div class="report-signature-row">
+                  <div class="sig-title">DIRETORA DE GENÔMICA &amp; CLONAGEM:</div>
+                  <div class="sig-name">Dra. Samantha Vance — Chefe de Engenharia Genômica e Bio-Cibernética Arasaka</div>
+                  <div class="sig-seal">CERTIFICADO GENÔMICO ARASAKA // LOCUS-EDG22-VERIFIED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference Image bla.png Modal Lightbox -->
+  <div id="modal-ref-bla" class="ref-bla-modal">
+    <div class="ref-modal-card">
+      <div class="ref-modal-header">
+        <div class="ref-modal-title">// IMAGEM DE REFERÊNCIA: BLA.PNG (MEDICAL HUD INTERFACE)</div>
+        <button type="button" class="boot-action-btn" id="btn-close-ref-modal">[X FECHAR]</button>
+      </div>
+      <div class="ref-modal-body">
+        <img src="assets/references/bla.png" alt="Referência bla.png - Medical HUD Interface" class="ref-modal-img" />
+        <div class="ref-modal-footer">
+          ARQUIVO ORIGINAL: assets/references/bla.png — Base de design para o Submenu Médico da Netrunner Elynalize, abrangendo escaneamento cerebral em bytes (TOPIC BRAIN SCAN), síntese vital do corpo em estase criogênica (SUBJECT X-FORCE_095), monitor cardíaco ECG de 72 BPM, cadeia de DNA e fórmula química neuro-inibidora.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MAIN APPLICATION SHELL -->
   <div id="app-shell">
     <!-- ==================== TOP HEADER (References 1, 2, 3) ==================== -->
@@ -63,6 +726,9 @@
 
       <!-- Top-Right CPU & Active Status (Referencia 2) -->
       <div class="cpu-header-box">
+        <button class="hud-boot-btn" id="btn-reopen-medical-hud" title="Abrir Submenu Médico Opcional e Prontuários Hospitalares de Elynalize">
+          🏥 [SUBMENU MÉDICO: RELATÓRIOS]
+        </button>
         <button class="audio-btn" id="btn-audio-toggle" title="Ativar/Desativar Sintetizador de Áudio Netrunner">
           [SFX: ON]
         </button>
@@ -180,20 +846,23 @@
       <div class="ruler-horizontal"></div>
 
       <!-- =================================================================
-           STAGE 1: ARASAKA LOGO IN BITS + LOGIN GATE
+           STAGE 1: ARASAKA LOGO IN BITS + MEDICAL HUD + LOGIN GATE
            ================================================================= -->
       <section class="stage-view active" id="stage-login">
         <div class="login-stage-layout">
-          <div class="logo-bits-header">
-            <span>// ARASAKA_CORP_IDENTITY_MATRIX // BIT-BY-BIT RECONSTRUCTION</span>
-            <span id="logo-bit-stats" style="color:var(--bw-cyan);">COMPILING LOGO BITS: 0%</span>
-          </div>
+          <!-- STAGE 1: ARASAKA LOGO IN BITS (Active Display) -->
+          <div id="stage1-logo-wrap" class="s1-logo-panel">
+            <div class="logo-bits-header">
+              <span>// ARASAKA_CORP_IDENTITY_MATRIX // BIT-BY-BIT RECONSTRUCTION</span>
+              <span id="logo-bit-stats" style="color:var(--bw-cyan);">ARASAKA LOGO BIT-MATRIX LOCKED // ACTIVE</span>
+            </div>
 
-          <!-- Canvas that recreates Arasaka_Logo_CP2077.webp in bits & bytes -->
-          <div class="logo-canvas-wrapper">
-            <canvas id="logo-bit-canvas"></canvas>
-            <div class="logo-bit-overlay-tag" id="logo-bit-mode-label">
-              SOURCE: Arasaka_Logo_CP2077.webp // MODE: BINARY BIT MATRIX (0/1)
+            <!-- Canvas that recreates Arasaka_Logo_CP2077.webp in bits & bytes -->
+            <div class="logo-canvas-wrapper">
+              <canvas id="logo-bit-canvas"></canvas>
+              <div class="logo-bit-overlay-tag" id="logo-bit-mode-label">
+                SOURCE: Arasaka_Logo_CP2077.webp // MODE: BINARY BIT MATRIX (0/1)
+              </div>
             </div>
           </div>
 
@@ -220,7 +889,7 @@
                       type="text"
                       id="input-username"
                       class="cyber-input"
-                      placeholder="admin-arasaka2077"
+                      placeholder="IDENTIFICAÇÃO DO OPERATIVO"
                       spellcheck="false"
                       required
                     />
@@ -254,6 +923,27 @@
                 </button>
               </div>
             </form>
+
+            <!-- Post-Login Choice Panel (Revelado após sucesso no login primário) -->
+            <div id="login-post-auth-panel" class="post-auth-choice-panel hidden">
+              <div class="post-auth-title">
+                <span class="auth-blink">●</span>
+                <span style="color:#00ff88;font-weight:bold;">ACESSO PRIMÁRIO LIBERADO // GATES 01 &amp; 02 ABERTOS</span>
+              </div>
+              <div class="post-auth-desc">
+                O terminal está desbloqueado. Escolha se deseja avançar diretamente na travessia de dados do sistema ou acessar o submenu hospitalar opcional com os prontuários médicos da paciente Elynalize:
+              </div>
+              <div class="post-auth-buttons-grid">
+                <button type="button" class="post-auth-btn primary" id="btn-post-login-advance">
+                  <div class="btn-main-txt">⚡ AVANÇAR PARA TRAVESSIA DE DADOS (STAGE 2) &gt;&gt;</div>
+                  <div class="btn-subdesc">Prosseguir com a quebra de ICE e acesso aos servidores Arasaka / Relic</div>
+                </button>
+                <button type="button" class="post-auth-btn medical" id="btn-post-login-medical">
+                  <div class="btn-main-txt">🏥 SUBMENU MÉDICO: RELATÓRIOS HOSPITALARES (OPCIONAL)</div>
+                  <div class="btn-subdesc">Acessar prontuários de Mente, Corpo, Toxinas e DNA (requer autenticação secundária)</div>
+                </button>
+              </div>
+            </div>
 
             <!-- Multi-layer password verification steps -->
             <div class="passkey-chain-bar">
@@ -351,9 +1041,9 @@
               <span>ARQUIVO 01 // 80,935 BYTES</span>
               <strong>01. ROSTO: ELYNALIZE (BYTES)</strong>
             </button>
-            <button class="reveal-tab-btn" data-target="pendrive" id="tab-reveal-pen">
+            <button class="reveal-tab-btn" data-target="prison" id="tab-reveal-pen">
               <span>ARQUIVO 02 // 135,014 BYTES</span>
-              <strong>02. CHIP: "PENDRIVE" L2-SEC_EP</strong>
+              <strong>02. CHIP "PRISON" (CONSCIÊNCIA)</strong>
             </button>
             <button class="reveal-tab-btn" data-target="galpao" id="tab-reveal-galpao">
               <span>ARQUIVO 03 // 85,917 BYTES</span>
@@ -363,7 +1053,11 @@
               <span>MATRIZ COMPLETA // 3 ARQUIVOS</span>
               <strong>04. VISÃO TRIPLA (TODOS EM BYTES)</strong>
             </button>
-            <button class="auto-cycle-btn" id="btn-toggle-autocycle" title="Pausar ou continuar avanço automático entre Rosto, Pendrive e Galpão">
+            <button class="reveal-tab-btn" data-target="medicalhud" id="tab-reveal-hud">
+              <span>ARQUIVO 05 // HUD MÉDICO &amp; BYTES</span>
+              <strong>05. CÉREBRO &amp; CORPO (HUD MÉDICO)</strong>
+            </button>
+            <button class="auto-cycle-btn" id="btn-toggle-autocycle" title="Pausar ou continuar avanço automático entre os arquivos">
               [AUTO-SEQUÊNCIA: ON (11s)]
             </button>
           </div>
@@ -382,7 +1076,7 @@
                 <div class="sev-box mind">
                   <h4>MENTE &amp; ALMA (CONSCIÊNCIA)</h4>
                   <div>STATUS: <strong>EXTRAÍDA (SOULKILLER)</strong></div>
-                  <div>MÍDIA: <strong>CHIP "PENDRIVE" L2-SEC_EP</strong></div>
+                  <div>MÍDIA: <strong>CHIP "PRISON" (AIR-GAP)</strong></div>
                   <div>LOCAL: <strong>DEPÓSITO / GALPÃO 09</strong></div>
                 </div>
                 <div class="sev-box body">

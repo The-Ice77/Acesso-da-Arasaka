@@ -726,7 +726,11 @@ body.spectrum-electromagnetic #app-shell { filter: invert(0.08) contrast(1.35) s
   height: 100%;
   display: none;
   flex-direction: column;
-  padding: 16px 24px 18px 56px;
+  padding: 14px 20px 20px 52px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ara-red-dim) rgba(10, 0, 4, 0.85);
 }
 
 .stage-view.active {
@@ -740,9 +744,10 @@ body.spectrum-electromagnetic #app-shell { filter: invert(0.08) contrast(1.35) s
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  gap: 10px;
+  justify-content: flex-start;
+  min-height: 100%;
+  gap: 14px;
+  width: 100%;
 }
 
 .logo-bits-header {
@@ -758,9 +763,9 @@ body.spectrum-electromagnetic #app-shell { filter: invert(0.08) contrast(1.35) s
 .logo-canvas-wrapper {
   position: relative;
   width: 100%;
-  flex: 1;
-  min-height: 170px;
-  max-height: 290px;
+  flex: 0 1 auto;
+  min-height: 140px;
+  max-height: 220px;
   border: 1px solid rgba(255, 0, 43, 0.45);
   background: radial-gradient(ellipse at center, rgba(45, 0, 10, 0.55) 0%, rgba(4, 0, 2, 0.92) 85%);
   display: flex;
@@ -1454,3 +1459,1428 @@ body.spectrum-electromagnetic #app-shell { filter: invert(0.08) contrast(1.35) s
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+@keyframes heartBeat {
+  0% { transform: scale(1); filter: drop-shadow(0 0 4px var(--ara-red)); }
+  14% { transform: scale(1.1); filter: drop-shadow(0 0 14px var(--ara-red-bright)); }
+  28% { transform: scale(1); filter: drop-shadow(0 0 4px var(--ara-red)); }
+  42% { transform: scale(1.15); filter: drop-shadow(0 0 16px var(--ara-red-bright)); }
+  70% { transform: scale(1); filter: drop-shadow(0 0 4px var(--ara-red)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 4px var(--ara-red)); }
+}
+@keyframes laserSweepDown {
+  0% { top: 0%; opacity: 0.85; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0.85; }
+}
+@keyframes byteRainFade {
+  0% { opacity: 0; transform: translateY(-4px); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+/* =========================================================
+   MEDICAL HUD INTERFACE & BOOT SEQUENCE (Referencia bla.png + brain.gif)
+   ========================================================= */
+
+/* Fullscreen Terminal Boot / Opening Process Overlay */
+.terminal-boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: radial-gradient(circle at center, rgba(14, 1, 4, 0.98) 0%, rgba(3, 0, 2, 0.99) 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 22px;
+  gap: 10px;
+  overflow: hidden;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.terminal-boot-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.02);
+}
+
+.boot-top-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--ara-red);
+  padding-bottom: 8px;
+  background: rgba(18, 0, 4, 0.7);
+  padding: 8px 14px;
+}
+
+.boot-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boot-tag-badge {
+  background: var(--ara-red);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  letter-spacing: 1.5px;
+}
+
+.boot-title-text {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 10px var(--ara-red);
+}
+
+.boot-controls-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boot-action-btn {
+  background: rgba(255, 0, 43, 0.15);
+  border: 1px solid var(--ara-red);
+  color: var(--ara-red-bright);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.boot-action-btn:hover {
+  background: var(--ara-red);
+  color: #000;
+  box-shadow: 0 0 14px var(--ara-red);
+}
+
+.boot-action-btn.cyan {
+  border-color: var(--bw-cyan);
+  color: var(--bw-cyan);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.boot-action-btn.cyan:hover {
+  background: var(--bw-cyan);
+  color: #000;
+  box-shadow: 0 0 14px var(--bw-cyan);
+}
+
+.boot-action-btn.primary {
+  background: var(--ara-red);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 16px rgba(255, 0, 43, 0.6);
+}
+
+/* Center Stage: Arasaka Logo Digitization in Bits */
+.boot-logo-stage-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  background: rgba(10, 0, 3, 0.7);
+  border: 1px solid rgba(255, 0, 43, 0.45);
+  padding: 10px 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.boot-logo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.74rem;
+  border-bottom: 1px solid rgba(255, 0, 43, 0.3);
+  padding-bottom: 4px;
+}
+
+.boot-logo-stats {
+  color: var(--bw-cyan);
+  font-weight: bold;
+}
+
+.boot-logo-canvas-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 180px;
+  background: radial-gradient(ellipse at center, rgba(45, 0, 10, 0.55) 0%, rgba(4, 0, 2, 0.95) 85%);
+  border: 1px solid rgba(255, 0, 43, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 35px rgba(255, 0, 43, 0.25);
+}
+
+#boot-logo-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.boot-logo-watermark-tag {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  font-size: 0.64rem;
+  color: #ff6e82;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2px 8px;
+  border: 1px solid var(--ara-red-dim);
+}
+
+.boot-terminal-log {
+  height: 95px;
+  min-height: 95px;
+  background: rgba(4, 0, 2, 0.9);
+  border: 1px solid rgba(255, 0, 43, 0.35);
+  padding: 6px 10px;
+  overflow-y: auto;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #ff99a8;
+  font-family: var(--font-mono);
+}
+
+.boot-terminal-log .log-highlight {
+  color: var(--bw-cyan);
+}
+
+.boot-terminal-log .log-success {
+  color: #00ff88;
+}
+
+/* Medical HUD Main Grid Layout (Exact Blueprint from bla.png) */
+.medical-hud-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr 1.35fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.med-hud-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Individual Medical HUD Topic Card */
+.med-hud-card {
+  background: rgba(12, 1, 4, 0.88);
+  border: 1px solid rgba(255, 0, 43, 0.6);
+  position: relative;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 0 20px rgba(255, 0, 43, 0.1);
+  clip-path: polygon(
+    8px 0, calc(100% - 8px) 0,
+    100% 8px, 100% calc(100% - 8px),
+    calc(100% - 8px) 100%, 8px 100%,
+    0 calc(100% - 8px), 0 8px
+  );
+}
+
+.med-hud-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-top: 2px solid var(--ara-red);
+  border-left: 2px solid var(--ara-red);
+  pointer-events: none;
+}
+
+.med-hud-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  border-bottom: 2px solid var(--ara-red);
+  border-right: 2px solid var(--ara-red);
+  pointer-events: none;
+}
+
+.med-hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 0, 43, 0.4);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.med-hud-title {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  letter-spacing: 1.5px;
+  color: #fff;
+  text-shadow: 0 0 6px var(--ara-red);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.med-hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.med-zoom-btn {
+  background: rgba(255, 0, 43, 0.15);
+  border: 1px solid var(--ara-red);
+  color: #ff8093;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+.med-zoom-btn:hover {
+  background: var(--ara-red);
+  color: #000;
+}
+
+.med-dots-indicator {
+  font-size: 0.62rem;
+  color: var(--ara-red);
+  letter-spacing: 1px;
+  margin-left: 4px;
+}
+
+.med-hud-desc {
+  font-size: 0.64rem;
+  line-height: 1.35;
+  color: #ff8598;
+  margin-top: 6px;
+  border-top: 1px dotted rgba(255, 0, 43, 0.3);
+  padding-top: 4px;
+}
+
+/* TOPIC - BRAIN SCAN (Brain GIF + Byte Digitalization Canvas) */
+.brain-scan-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 130px;
+  max-height: 180px;
+  background: radial-gradient(ellipse at center, rgba(40, 2, 10, 0.6) 0%, rgba(4, 0, 2, 0.95) 85%);
+  border: 1px solid rgba(255, 0, 43, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.brain-gif-element {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  filter: contrast(1.25) saturate(1.4) drop-shadow(0 0 14px rgba(0, 240, 255, 0.45));
+  mix-blend-mode: screen;
+}
+
+#med-brain-byte-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.brain-byte-stats-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.66rem;
+  padding: 3px 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--ara-red-dim);
+  margin-top: 4px;
+}
+
+/* TOPIC - HEART SCAN (Anatomical Vector Heart) */
+.heart-scan-viewport {
+  width: 100%;
+  flex: 1;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 0, 2, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.25);
+  position: relative;
+}
+
+.heart-svg-anim {
+  width: 82px;
+  height: 95px;
+  animation: heartBeat 1.25s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+/* TOPIC - DNA CHAIN */
+.dna-scan-viewport {
+  width: 100%;
+  flex: 1;
+  min-height: 110px;
+  background: rgba(4, 0, 2, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.25);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#med-dna-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* TOPIC - FORMULA (Molecular Structure) */
+.formula-scan-viewport {
+  width: 100%;
+  flex: 1;
+  min-height: 90px;
+  background: rgba(4, 0, 2, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.formula-svg {
+  width: 140px;
+  height: 75px;
+}
+
+/* RIGHT COLUMN: SUBJECT - ELYNALIZE [X-FORCE_095] (BODY STATUS) */
+.subject-body-card {
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-body-viewport {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-height: 240px;
+  background: radial-gradient(ellipse at center, rgba(35, 1, 8, 0.6) 0%, rgba(3, 0, 2, 0.95) 85%);
+  border: 1px solid rgba(255, 0, 43, 0.4);
+  position: relative;
+  padding: 6px;
+  gap: 8px;
+}
+
+/* Vertical Height Scale (0.0 to 6.0 from bla.png) */
+.height-scale-col {
+  width: 32px;
+  border-right: 1px solid rgba(255, 0, 43, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.56rem;
+  color: #ff6e82;
+  text-align: right;
+  padding-right: 4px;
+}
+
+.body-silhouette-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.body-silhouette-svg {
+  height: 95%;
+  max-width: 120px;
+  filter: drop-shadow(0 0 10px rgba(255, 0, 43, 0.5));
+}
+
+.body-callout-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.body-status-readout-col {
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  line-height: 1.3;
+  padding: 4px 6px;
+  background: rgba(8, 0, 3, 0.75);
+  border: 1px solid rgba(255, 0, 43, 0.3);
+}
+
+.body-status-row {
+  margin-bottom: 4px;
+}
+.body-status-row strong {
+  display: block;
+  color: #fff;
+  font-size: 0.65rem;
+}
+.body-status-row span {
+  color: var(--bw-cyan);
+}
+.body-status-row.danger span {
+  color: var(--ara-red-bright);
+}
+
+/* BOTTOM-RIGHT: TOPIC - HEART RATE _ 72 BMPS (Oscilloscope ECG Canvas) */
+.ecg-card-wrap {
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid rgba(255, 0, 43, 0.4);
+  background: rgba(6, 0, 2, 0.9);
+  padding: 6px;
+}
+
+.ecg-canvas-container {
+  width: 100%;
+  height: 52px;
+  position: relative;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 12px,
+    rgba(255, 0, 43, 0.08) 12px,
+    rgba(255, 0, 43, 0.08) 13px
+  );
+}
+
+#med-ecg-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ecg-footer-ticker {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  color: #ff8093;
+  margin-top: 3px;
+  border-top: 1px dotted rgba(255, 0, 43, 0.3);
+  padding-top: 2px;
+}
+
+/* Bottom Boot Status Progress Bar */
+.boot-bottom-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(14, 0, 4, 0.85);
+  border: 1px solid var(--ara-red);
+  padding: 8px 14px;
+  gap: 16px;
+}
+
+.boot-progress-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.boot-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 0, 43, 0.15);
+  border: 1px solid var(--ara-red-dim);
+  overflow: hidden;
+}
+
+.boot-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ara-red) 0%, var(--ely-purple) 60%, var(--bw-cyan) 100%);
+  box-shadow: 0 0 10px var(--bw-cyan);
+  transition: width 0.12s linear;
+}
+
+.boot-status-label {
+  font-size: 0.7rem;
+  color: var(--bw-cyan);
+  letter-spacing: 1px;
+}
+
+/* =========================================================
+   STAGE 1 LOGO IN BITS PANEL (Non-stretching, responsive)
+   ========================================================= */
+.s1-logo-panel {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* =========================================================
+   SECONDARY AUTHENTICATION CHALLENGE (DESAFIO SECUNDÁRIO)
+   ========================================================= */
+.secondary-auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(4, 0, 2, 0.94);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.secondary-auth-modal.active {
+  display: flex;
+}
+
+.secondary-auth-card {
+  width: min(620px, 94vw);
+  background: rgba(14, 0, 4, 0.98);
+  border: 2px solid var(--ara-red);
+  box-shadow: 0 0 45px rgba(255, 0, 43, 0.6), inset 0 0 30px rgba(255, 0, 43, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 16px;
+}
+
+.secondary-auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--ara-red);
+  padding-bottom: 8px;
+}
+
+.secondary-auth-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: #fff;
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-blink {
+  color: var(--ara-red);
+  animation: pulseBlink 0.8s infinite;
+}
+
+.secondary-auth-badge {
+  font-size: 0.65rem;
+  background: rgba(255, 0, 43, 0.2);
+  border: 1px solid var(--ara-red);
+  color: var(--bw-cyan);
+  padding: 2px 6px;
+}
+
+.secondary-alert-box {
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 0, 43, 0.12);
+  border-left: 3px solid var(--ara-red);
+  padding: 10px 14px;
+}
+
+.secondary-alert-box .alert-icon {
+  font-size: 1.4rem;
+}
+
+.secondary-alert-box .alert-text {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #ff99a8;
+}
+
+.secondary-alert-box .alert-text strong {
+  color: #fff;
+}
+
+.secondary-input-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #ff6e82;
+  margin-bottom: 6px;
+}
+
+.key-hint {
+  color: var(--bw-cyan);
+  font-weight: 700;
+}
+
+.secondary-actions-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.secondary-btn {
+  font-size: 0.72rem;
+  padding: 8px 14px;
+}
+
+.secondary-submit {
+  flex: 1;
+}
+
+.secondary-feedback {
+  margin-top: 10px;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  color: var(--bw-cyan);
+  min-height: 20px;
+}
+
+.secondary-feedback.error {
+  color: #ff2a4b;
+  text-shadow: 0 0 6px rgba(255, 0, 43, 0.8);
+}
+
+.secondary-feedback.success {
+  color: #00ff88;
+  text-shadow: 0 0 6px #00ff88;
+}
+
+/* =========================================================
+   NEURAL MEDICAL HUD MODAL (FULLSCREEN HUD PRESENTATION)
+   ========================================================= */
+.neural-hud-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background: radial-gradient(circle at center, rgba(14, 1, 4, 0.98) 0%, rgba(3, 0, 2, 0.99) 100%);
+  display: none;
+  flex-direction: column;
+  padding: 12px 18px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.neural-hud-modal.active {
+  display: flex;
+}
+
+.neural-hud-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.neural-hud-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(20, 0, 5, 0.85);
+  border: 1px solid var(--ara-red);
+  padding: 6px 14px;
+}
+
+.hud-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-status-badge {
+  font-size: 0.62rem;
+  color: #00ff88;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.hud-main-title {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 8px var(--ara-red);
+}
+
+.hud-sub-desc {
+  font-size: 0.65rem;
+  color: var(--bw-cyan);
+}
+
+.hud-header-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Top Header Re-Open Medical HUD Button */
+.hud-boot-btn {
+  background: rgba(255, 0, 43, 0.2);
+  border: 1px solid var(--ara-red-bright);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 1.2px;
+  transition: all 0.2s;
+  text-shadow: 0 0 6px var(--ara-red);
+}
+
+.hud-boot-btn:hover {
+  background: var(--ara-red);
+  color: #000;
+  box-shadow: 0 0 14px var(--ara-red);
+  text-shadow: none;
+}
+
+/* Reference Image bla.png Modal */
+.ref-bla-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ref-bla-modal.active {
+  display: flex;
+}
+
+.ref-modal-card {
+  max-width: 960px;
+  width: 90vw;
+  max-height: 90vh;
+  background: rgba(14, 0, 4, 0.98);
+  border: 2px solid var(--ara-red);
+  box-shadow: 0 0 40px rgba(255, 0, 43, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ref-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(25, 0, 6, 0.9);
+  border-bottom: 1px solid var(--ara-red);
+}
+
+.ref-modal-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: #fff;
+  letter-spacing: 1.5px;
+}
+
+.ref-modal-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  gap: 12px;
+}
+
+.ref-modal-img {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border: 1px solid rgba(255, 0, 43, 0.5);
+}
+
+.ref-modal-footer {
+  font-size: 0.72rem;
+  color: #ff8093;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* =========================================================
+   POST-LOGIN CHOICE PANEL (DIRECT TRAVERSAL VS MEDICAL SUBMENU)
+   ========================================================= */
+.post-auth-choice-panel {
+  margin-top: 10px;
+  background: rgba(22, 0, 6, 0.92);
+  border: 1px solid var(--ara-red);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.post-auth-choice-panel.hidden {
+  display: none !important;
+}
+
+.post-auth-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 1.2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-auth-desc {
+  font-size: 0.7rem;
+  color: #ff99a8;
+  line-height: 1.4;
+}
+
+.post-auth-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.post-auth-btn {
+  background: rgba(10, 0, 4, 0.9);
+  border: 1px solid var(--ara-red-dim);
+  color: #ffffff;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.post-auth-btn .btn-main-txt {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.post-auth-btn .btn-subdesc {
+  font-size: 0.65rem;
+  color: #aaa;
+}
+
+.post-auth-btn.primary {
+  border-color: var(--ara-red-bright);
+}
+
+.post-auth-btn.primary:hover {
+  background: var(--ara-red);
+  color: #000;
+  box-shadow: 0 0 16px var(--ara-red);
+}
+
+.post-auth-btn.primary:hover .btn-subdesc {
+  color: #220005;
+}
+
+.post-auth-btn.medical {
+  border-color: var(--bw-cyan);
+}
+
+.post-auth-btn.medical .btn-main-txt {
+  color: var(--bw-cyan);
+}
+
+.post-auth-btn.medical:hover {
+  background: var(--bw-cyan);
+  color: #000;
+  box-shadow: 0 0 16px var(--bw-cyan);
+}
+
+.post-auth-btn.medical:hover .btn-main-txt,
+.post-auth-btn.medical:hover .btn-subdesc {
+  color: #001f24;
+}
+
+.secondary-auth-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================
+   HOSPITAL SUBMENU & MEDICAL REPORTS (4 TABS)
+   ========================================================= */
+.med-tabs-nav {
+  display: flex;
+  gap: 6px;
+  background: rgba(12, 0, 3, 0.95);
+  border: 1px solid var(--ara-red-dim);
+  padding: 4px 6px;
+  flex-shrink: 0;
+}
+
+.med-tab-btn {
+  flex: 1;
+  background: rgba(25, 0, 6, 0.7);
+  border: 1px solid rgba(255, 0, 43, 0.3);
+  color: #cccccc;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.med-tab-btn:hover {
+  background: rgba(255, 0, 43, 0.25);
+  color: #ffffff;
+  border-color: var(--ara-red-bright);
+}
+
+.med-tab-btn.active {
+  background: var(--ara-red);
+  color: #000000;
+  border-color: var(--ara-red-bright);
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(255, 0, 43, 0.7);
+}
+
+.med-tab-btn.active .tab-tag {
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.med-tab-btn .tab-icon {
+  font-size: 0.85rem;
+}
+
+.med-tab-btn .tab-tag {
+  font-size: 0.6rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.4);
+  padding: 1px 5px;
+  color: var(--bw-cyan);
+}
+
+.med-tab-panel-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.med-tab-panel {
+  display: none;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.med-tab-panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.med-panel-split-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 1024px) {
+  .med-panel-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.med-visual-column {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ara-red-dim) rgba(10, 0, 4, 0.85);
+}
+
+.med-report-column {
+  height: 100%;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Meta Strip */
+.hud-corp-meta-strip {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.62rem;
+  margin-bottom: 2px;
+}
+
+.hud-corp-code {
+  color: #ff8093;
+  letter-spacing: 1.2px;
+  font-family: var(--font-mono);
+}
+
+/* Medical Report Card Document Style */
+.medical-report-card {
+  background: rgba(14, 1, 4, 0.96);
+  border: 1px solid var(--ara-red);
+  box-shadow: inset 0 0 30px rgba(255, 0, 43, 0.15), 0 0 25px rgba(0, 0, 0, 0.9);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ara-red-dim) rgba(10, 0, 4, 0.85);
+}
+
+.report-header-stripe {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--ara-red);
+  padding-bottom: 8px;
+}
+
+.report-id-tag {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--bw-cyan);
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.report-confidential-badge {
+  font-size: 0.65rem;
+  background: rgba(255, 0, 43, 0.25);
+  border: 1px solid var(--ara-red);
+  color: #ffffff;
+  padding: 3px 10px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+}
+
+.report-patient-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+  background: rgba(255, 0, 43, 0.08);
+  border-left: 3px solid var(--ara-red);
+  padding: 10px 14px;
+  font-size: 0.73rem;
+  color: #ff99a8;
+}
+
+.report-patient-meta strong {
+  color: #ffffff;
+}
+
+.report-section-block {
+  background: rgba(8, 0, 2, 0.75);
+  border: 1px solid rgba(255, 0, 43, 0.35);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-section-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: #ffffff;
+  letter-spacing: 1.4px;
+  border-left: 2px solid var(--bw-cyan);
+  padding-left: 6px;
+}
+
+.report-paragraph {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #e0d0d5;
+  line-height: 1.55;
+  text-align: justify;
+}
+
+.report-paragraph strong {
+  color: var(--bw-cyan);
+}
+
+.report-bullets-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.72rem;
+  color: #e0d0d5;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-bullets-list strong {
+  color: #ff8093;
+}
+
+.report-signature-row {
+  margin-top: 6px;
+  border-top: 1px dashed rgba(255, 0, 43, 0.45);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sig-title {
+  font-size: 0.65rem;
+  color: #888;
+}
+
+.sig-name {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  color: #ffffff;
+  letter-spacing: 1.2px;
+}
+
+.sig-seal {
+  font-size: 0.65rem;
+  color: #00ff88;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+}
+
+/* Extra Telemetry Cards in Visual Column */
+.med-extra-card {
+  background: rgba(10, 0, 3, 0.9);
+  border: 1px solid rgba(255, 0, 43, 0.35);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.med-extra-header {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--bw-cyan);
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 0, 43, 0.25);
+  padding-bottom: 4px;
+}
+
+/* EEG Brainwave Meters */
+.eeg-bands-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eeg-band-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.68rem;
+}
+
+.eeg-band-name {
+  width: 105px;
+  color: #ff99a8;
+  font-family: var(--font-mono);
+}
+
+.eeg-meter-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.eeg-meter-bar {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.eeg-meter-bar.zero {
+  background: #444;
+}
+
+.eeg-meter-bar.active {
+  background: var(--bw-cyan);
+  box-shadow: 0 0 8px var(--bw-cyan);
+}
+
+.eeg-val {
+  width: 130px;
+  text-align: right;
+  color: #888;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.eeg-val.active {
+  color: var(--bw-cyan);
+  font-weight: 700;
+}
+
+/* Specs Mini Grid */
+.med-specs-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.spec-cell {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 0, 43, 0.25);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spec-cell span {
+  font-size: 0.6rem;
+  color: #888;
+}
+
+.spec-cell strong {
+  font-size: 0.72rem;
+  color: #ffffff;
+}
+
+/* Visual Column Stats Grid */
+.med-nodes-summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.node-badge {
+  font-size: 0.65rem;
+  padding: 3px 6px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.node-badge.cyan {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--bw-cyan);
+  color: var(--bw-cyan);
+}
+
+.node-badge.red {
+  background: rgba(255, 0, 43, 0.15);
+  border-color: var(--ara-red);
+  color: #ff8093;
+}
+
+.node-badge.purple {
+  background: rgba(184, 51, 255, 0.15);
+  border-color: #b833ff;
+  color: #e2a6ff;
+}
+
+.toxin-stats-grid,
+.dna-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.toxin-stat-box,
+.dna-stat-box {
+  background: rgba(10, 0, 3, 0.8);
+  border: 1px solid rgba(255, 0, 43, 0.35);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toxin-stat-box .t-label,
+.dna-stat-box .d-label {
+  font-size: 0.6rem;
+  color: #888;
+}
+
+.toxin-stat-box .t-val,
+.dna-stat-box .d-val {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.toxin-stat-box .t-val.cyan,
+.dna-stat-box .d-val.cyan {
+  color: var(--bw-cyan);
+}
+
+.toxin-stat-box .t-val.green,
+.dna-stat-box .d-val.green {
+  color: #00ff88;
+}
+
+.dna-stat-box .d-val.purple {
+  color: #d17bff;
+}
+
+

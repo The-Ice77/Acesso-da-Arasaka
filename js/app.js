@@ -86,8 +86,11 @@
   const assetSources = {
     logo: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.logo) || 'assets/images/Arasaka_Logo_CP2077.webp',
     elynalize: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.elynalize) || 'assets/images/Elynalize pfp.jpg',
+    prison: (window.ARASAKA_ASSETS && (window.ARASAKA_ASSETS.prison || window.ARASAKA_ASSETS.pendrive)) || 'assets/images/pendrive.png',
     pendrive: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.pendrive) || 'assets/images/pendrive.png',
-    galpao: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.galpao) || 'assets/images/galpão.jpg'
+    galpao: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.galpao) || 'assets/images/galpão.jpg',
+    brain: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.brain) || 'assets/gif/brain.gif',
+    bla: (window.ARASAKA_ASSETS && window.ARASAKA_ASSETS.bla) || 'assets/references/bla.png'
   };
 
   function loadAllAssets() {
@@ -294,15 +297,138 @@
   }
 
   // =========================================================================
-  // 5. STAGE 1: ARASAKA LOGO IN BITS (Arasaka_Logo_CP2077.webp -> BIT MATRIX)
+  // 5. ARASAKA LOGO IN BITS (BOOT SCREEN + STAGE 1)
+  // (Reconstructs Arasaka_Logo_CP2077.webp bit-by-bit in real-time)
   // =========================================================================
+
+  // BOOT OVERLAY ARASAKA LOGO CANVAS
+  const bootLogoCanvas = document.getElementById('boot-logo-canvas');
+  const bootLogoCtx = bootLogoCanvas ? bootLogoCanvas.getContext('2d') : null;
+  let bootLogoCells = [];
+  let bootLogoProgress = 0;
+  let bootLogoAnimFrame = null;
+
+  function buildBootLogoBitMatrix() {
+    if (!bootLogoCanvas || !bootLogoCanvas.parentElement) return;
+    const rect = bootLogoCanvas.parentElement.getBoundingClientRect();
+    bootLogoCanvas.width = Math.max(520, Math.floor(rect.width));
+    bootLogoCanvas.height = Math.max(180, Math.floor(rect.height));
+
+    const off = document.createElement('canvas');
+    off.width = bootLogoCanvas.width;
+    off.height = bootLogoCanvas.height;
+    const octx = off.getContext('2d');
+
+    const img = loadedImages.logo;
+    bootLogoCells = [];
+
+    if (img) {
+      const scale = Math.min(
+        (off.width * 0.88) / img.width,
+        (off.height * 0.84) / img.height
+      );
+      const drawW = img.width * scale;
+      const drawH = img.height * scale;
+      const drawX = (off.width - drawW) / 2;
+      const drawY = (off.height - drawH) / 2;
+      octx.drawImage(img, drawX, drawY, drawW, drawH);
+
+      const imgData = octx.getImageData(0, 0, off.width, off.height).data;
+      const stepX = 5;
+      const stepY = 6;
+
+      for (let y = 0; y < off.height; y += stepY) {
+        for (let x = 0; x < off.width; x += stepX) {
+          const idx = (y * off.width + x) * 4;
+          const r = imgData[idx];
+          const g = imgData[idx + 1];
+          const b = imgData[idx + 2];
+          const a = imgData[idx + 3];
+
+          const isRedLogo = a > 60 && r > 110 && g < 100 && b < 100;
+          if (isRedLogo) {
+            bootLogoCells.push({
+              x,
+              y,
+              bit: Math.random() > 0.5 ? '1' : '0',
+              hex: Math.floor(Math.random() * 16).toString(16).toUpperCase(),
+              intensity: r / 255,
+              order: (x / off.width) * 0.7 + (y / off.height) * 0.3 + Math.random() * 0.12
+            });
+          }
+        }
+      }
+    }
+
+    bootLogoProgress = 0;
+  }
+
+  function animateBootLogoBits(timestamp) {
+    if (!bootLogoCanvas || !bootLogoCtx) return;
+    if (bootLogoCanvas.offsetParent === null) return; // Stop drawing if boot overlay is hidden
+
+    bootLogoCtx.fillStyle = 'rgba(6, 0, 2, 0.4)';
+    bootLogoCtx.fillRect(0, 0, bootLogoCanvas.width, bootLogoCanvas.height);
+
+    // Scan line
+    bootLogoCtx.strokeStyle = 'rgba(255, 0, 43, 0.12)';
+    bootLogoCtx.lineWidth = 1;
+    const scanY = (timestamp * 0.09) % bootLogoCanvas.height;
+    bootLogoCtx.beginPath();
+    bootLogoCtx.moveTo(0, scanY);
+    bootLogoCtx.lineTo(bootLogoCanvas.width, scanY);
+    bootLogoCtx.stroke();
+
+    if (bootLogoProgress < 1.15) {
+      bootLogoProgress += 0.016;
+      const pct = Math.min(100, Math.floor((bootLogoProgress / 1.05) * 100));
+      const statEl = document.getElementById('boot-logo-stats');
+      if (statEl) {
+        statEl.textContent =
+          pct < 100
+            ? `DIGITALIZANDO LOGO ARASAKA EM BITS: ${pct}% [${bootLogoCells.length * 8} BITS]`
+            : `ARASAKA LOGO BIT-MATRIX COMPILADA COM SUCESSO // ${bootLogoCells.length * 8} BITS ATIVOS`;
+      }
+    }
+
+    bootLogoCtx.font = 'bold 7px "Share Tech Mono", monospace';
+    const waveX = ((timestamp * 0.2) % (bootLogoCanvas.width + 200)) - 100;
+
+    for (let i = 0; i < bootLogoCells.length; i++) {
+      const c = bootLogoCells[i];
+      if (c.order > bootLogoProgress) {
+        if (c.order - bootLogoProgress < 0.12 && Math.random() < 0.35) {
+          bootLogoCtx.fillStyle = '#00f0ff';
+          bootLogoCtx.fillText(c.bit, c.x, c.y - (c.order - bootLogoProgress) * 140);
+        }
+        continue;
+      }
+
+      const distWave = Math.abs(c.x - waveX);
+      if (distWave < 28) {
+        bootLogoCtx.fillStyle = '#ffffff';
+        if (Math.random() < 0.15) c.bit = c.bit === '1' ? '0' : '1';
+      } else if (distWave < 65) {
+        bootLogoCtx.fillStyle = '#ff4d6a';
+      } else {
+        bootLogoCtx.fillStyle = '#ff002b';
+      }
+
+      bootLogoCtx.fillText(c.bit, c.x, c.y);
+    }
+
+    bootLogoAnimFrame = requestAnimationFrame(animateBootLogoBits);
+  }
+
+  // STAGE 1 ARASAKA LOGO CANVAS
   const logoCanvas = document.getElementById('logo-bit-canvas');
-  const logoCtx = logoCanvas.getContext('2d');
+  const logoCtx = logoCanvas ? logoCanvas.getContext('2d') : null;
   let logoBitCells = [];
   let logoBuildProgress = 0;
   let logoAnimFrame = null;
 
   function buildArasakaLogoBitMatrix() {
+    if (!logoCanvas || !logoCanvas.parentElement) return;
     const rect = logoCanvas.parentElement.getBoundingClientRect();
     logoCanvas.width = Math.max(520, Math.floor(rect.width));
     logoCanvas.height = Math.max(180, Math.floor(rect.height));
@@ -316,7 +442,6 @@
     logoBitCells = [];
 
     if (img) {
-      // Fit Arasaka_Logo_CP2077.webp nicely centered
       const scale = Math.min(
         (off.width * 0.86) / img.width,
         (off.height * 0.82) / img.height
@@ -339,8 +464,6 @@
           const b = imgData[idx + 2];
           const a = imgData[idx + 3];
 
-          // Arasaka_Logo_CP2077.webp has red logo on transparent or white background:
-          // Check if pixel is predominantly red OR opaque non-white
           const isRedLogo = a > 60 && r > 120 && g < 100 && b < 100;
           if (isRedLogo) {
             logoBitCells.push({
@@ -360,10 +483,15 @@
   }
 
   function animateArasakaLogoBits(timestamp) {
+    if (!logoCanvas || !logoCtx) return;
+    if (logoCanvas.offsetParent === null) {
+      logoAnimFrame = requestAnimationFrame(animateArasakaLogoBits);
+      return;
+    }
+
     logoCtx.fillStyle = 'rgba(6, 0, 2, 0.38)';
     logoCtx.fillRect(0, 0, logoCanvas.width, logoCanvas.height);
 
-    // Subtle background hex grid lines
     logoCtx.strokeStyle = 'rgba(255, 0, 43, 0.08)';
     logoCtx.lineWidth = 1;
     const scanY = (timestamp * 0.08) % logoCanvas.height;
@@ -390,7 +518,6 @@
     for (let i = 0; i < logoBitCells.length; i++) {
       const c = logoBitCells[i];
       if (c.order > logoBuildProgress) {
-        // Streaming falling bit before locking into logo position
         if (c.order - logoBuildProgress < 0.14 && Math.random() < 0.35) {
           logoCtx.fillStyle = '#00f0ff';
           logoCtx.fillText(c.bit, c.x, c.y - (c.order - logoBuildProgress) * 140);
@@ -398,7 +525,6 @@
         continue;
       }
 
-      // Pulse wave across compiled bits
       const distWave = Math.abs(c.x - waveX);
       if (distWave < 28) {
         logoCtx.fillStyle = '#ffffff';
@@ -416,10 +542,11 @@
   }
 
   // =========================================================================
-  // 6. STAGE NAVIGATION & CREDENTIAL AUTHENTICATION
+  // 6. STAGE NAVIGATION, CREDENTIAL AUTHENTICATION & SECONDARY CHALLENGE
   // =========================================================================
   const VALID_USER = 'admin-arasaka2077';
   const VALID_PASS = 'ely_containment_project204077';
+  const SECONDARY_PASSKEY = 'elyprocess77';
   let currentStage = 1;
   let isUnlocked = false;
 
@@ -452,6 +579,54 @@
     });
   }
 
+  let isPrimaryUnlocked = false;
+  let isSecondaryUnlocked = false;
+
+  function openSecondaryAuthModal() {
+    const modal = document.getElementById('modal-secondary-auth');
+    if (!modal) return;
+    modal.classList.add('active');
+    sfx.omegaAlert();
+    const inp = document.getElementById('input-secondary-passkey');
+    if (inp) {
+      inp.value = '';
+      inp.focus();
+    }
+  }
+
+  function openNeuralMedicalHudModal() {
+    const modal = document.getElementById('modal-neural-hud');
+    if (!modal) return;
+    modal.classList.add('active');
+    sfx.omegaAlert();
+    resizeMedicalCanvases();
+  }
+
+  function setupMedicalTabsController() {
+    const tabBtns = document.querySelectorAll('.med-tab-btn');
+    const tabPanels = document.querySelectorAll('.med-tab-panel');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-med-tab');
+        sfx.keyClick();
+
+        tabBtns.forEach((b) => b.classList.remove('active'));
+        tabPanels.forEach((p) => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const activePanel = document.getElementById(`med-panel-${targetTab}`);
+        if (activePanel) {
+          activePanel.classList.add('active');
+        }
+
+        setTimeout(() => {
+          resizeMedicalCanvases();
+        }, 50);
+      });
+    });
+  }
+
   function setupLoginController() {
     const userInput = document.getElementById('input-username');
     const passInput = document.getElementById('input-password');
@@ -460,81 +635,272 @@
     const autoBtn = document.getElementById('btn-auto-hack');
 
     [userInput, passInput].forEach((inp) => {
-      inp.addEventListener('keydown', () => sfx.keyClick());
+      if (inp) inp.addEventListener('keydown', () => sfx.keyClick());
     });
 
-    // Auto-type credentials button for smooth live presentation
     let autoTyping = false;
-    autoBtn.addEventListener('click', () => {
-      if (autoTyping) return;
-      autoTyping = true;
-      userInput.value = '';
-      passInput.value = '';
-      passInput.type = 'text'; // Show password being typed in cyber style
-      feedback.className = 'login-feedback';
-      feedback.textContent = 'INJETANDO CREDENCIAIS DE ACESSO ARASAKA-MNL...';
+    if (autoBtn) {
+      autoBtn.addEventListener('click', () => {
+        if (autoTyping) return;
+        autoTyping = true;
+        userInput.value = '';
+        passInput.value = '';
+        passInput.type = 'text';
+        feedback.className = 'login-feedback';
+        feedback.textContent = 'INJETANDO CREDENCIAIS DE ACESSO ARASAKA-MNL...';
 
-      let uIdx = 0;
-      let pIdx = 0;
+        let uIdx = 0;
+        let pIdx = 0;
 
-      const typeTimer = setInterval(() => {
-        if (uIdx < VALID_USER.length) {
-          userInput.value += VALID_USER[uIdx++];
-          sfx.keyClick();
-        } else if (pIdx < VALID_PASS.length) {
-          passInput.value += VALID_PASS[pIdx++];
-          sfx.keyClick();
-        } else {
-          clearInterval(typeTimer);
-          autoTyping = false;
-          setTimeout(() => {
-            form.requestSubmit();
-          }, 300);
-        }
-      }, 38);
-    });
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const u = userInput.value.trim();
-      const p = passInput.value.trim();
-
-      if (u !== VALID_USER || p !== VALID_PASS) {
-        sfx.errorBuzz();
-        feedback.className = 'login-feedback error';
-        feedback.textContent =
-          'ACESSO NEGADO // CREDENCIAIS INVÁLIDAS. EXIGIDO: admin-arasaka2077 + SENHA DE CONTENÇÃO';
-        return;
-      }
-
-      // Credentials Verified! Run multi-gate passkey sequence
-      isUnlocked = true;
-      sfx.breachSuccess();
-      feedback.className = 'login-feedback success';
-      feedback.textContent =
-        'SENHA ACEITA [ely_containment_project204077] // DESBLOQUEANDO CAMADAS DE SEGURANÇA...';
-
-      document.getElementById('header-security-state').textContent =
-        'SECURITY: ICE BREACHED // ROOT ACCESS: admin-arasaka2077';
-      document.getElementById('prime-directive-banner').textContent =
-        'ACCESSING PROJECT ELY-204077';
-
-      const gates = ['chain-1', 'chain-2', 'chain-3', 'chain-4'];
-      gates.forEach((gId, idx) => {
-        setTimeout(() => {
-          sfx.gateUnlock(idx + 1);
-          const el = document.getElementById(gId);
-          if (el) {
-            el.classList.add('unlocked');
-            const statusSpan = el.querySelector('span:last-child');
-            if (statusSpan) statusSpan.textContent = '[OPEN]';
+        const typeTimer = setInterval(() => {
+          if (uIdx < VALID_USER.length) {
+            userInput.value += VALID_USER[uIdx++];
+            sfx.keyClick();
+          } else if (pIdx < VALID_PASS.length) {
+            passInput.value += VALID_PASS[pIdx++];
+            sfx.keyClick();
+          } else {
+            clearInterval(typeTimer);
+            autoTyping = false;
+            setTimeout(() => {
+              form.requestSubmit();
+            }, 300);
           }
-          if (idx === gates.length - 1) {
-            setTimeout(() => startFastNavigationSequence(), 450);
-          }
-        }, idx * 320);
+        }, 38);
       });
-    });
+    }
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const u = userInput.value.trim();
+        const p = passInput.value.trim();
+
+        if (u !== VALID_USER || p !== VALID_PASS) {
+          sfx.errorBuzz();
+          feedback.className = 'login-feedback error';
+          feedback.textContent =
+            'ACESSO NEGADO // CREDENCIAIS DE ACESSO OU CHAVE ICE INCORRETAS. REGISTRADO NO LOG ARASAKA.';
+          return;
+        }
+
+        // Primary Credentials Accepted! Unlock Gates 1 & 2
+        isPrimaryUnlocked = true;
+        sfx.gateUnlock(1);
+        feedback.className = 'login-feedback success';
+        feedback.textContent =
+          'CREDENCIAL PRIMÁRIA ACEITA // GATES 01 & 02 LIBERADOS. SELECIONE O DESTINO ABAIXO:';
+
+        ['chain-1', 'chain-2'].forEach((gId, idx) => {
+          setTimeout(() => {
+            sfx.gateUnlock(idx + 1);
+            const el = document.getElementById(gId);
+            if (el) {
+              el.classList.add('unlocked');
+              const statusSpan = el.querySelector('span:last-child');
+              if (statusSpan) statusSpan.textContent = '[OPEN]';
+            }
+          }, idx * 280);
+        });
+
+        // Revela painel com as opções: Avançar direto para Stage 2 OU Submenu Médico
+        const choicePanel = document.getElementById('login-post-auth-panel');
+        if (choicePanel) {
+          choicePanel.classList.remove('hidden');
+        }
+
+        const advanceBtn = document.getElementById('btn-post-login-advance');
+        const medicalBtn = document.getElementById('btn-post-login-medical');
+
+        if (advanceBtn) {
+          advanceBtn.onclick = () => {
+            sfx.keyClick();
+            startFastNavigationSequence();
+          };
+        }
+
+        if (medicalBtn) {
+          medicalBtn.onclick = () => {
+            sfx.keyClick();
+            if (isSecondaryUnlocked) {
+              openNeuralMedicalHudModal();
+            } else {
+              openSecondaryAuthModal();
+            }
+          };
+        }
+      });
+    }
+  }
+
+  function setupSecondaryAuthController() {
+    const secForm = document.getElementById('secondary-auth-form');
+    const secInput = document.getElementById('input-secondary-passkey');
+    const autoSecBtn = document.getElementById('btn-auto-secondary');
+    const secFeedback = document.getElementById('secondary-feedback-msg');
+    const secModal = document.getElementById('modal-secondary-auth');
+    const closeSecBtn = document.getElementById('btn-close-secondary-auth');
+
+    if (closeSecBtn) {
+      closeSecBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (secModal) secModal.classList.remove('active');
+      });
+    }
+
+    if (secModal) {
+      secModal.addEventListener('click', (e) => {
+        if (e.target === secModal) {
+          secModal.classList.remove('active');
+        }
+      });
+    }
+
+    if (secInput) {
+      secInput.addEventListener('keydown', () => sfx.keyClick());
+    }
+
+    if (autoSecBtn && secInput) {
+      autoSecBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        secInput.value = '';
+        let idx = 0;
+        const timer = setInterval(() => {
+          if (idx < SECONDARY_PASSKEY.length) {
+            secInput.value += SECONDARY_PASSKEY[idx++];
+            sfx.keyClick();
+          } else {
+            clearInterval(timer);
+            setTimeout(() => {
+              if (secForm) secForm.requestSubmit();
+            }, 250);
+          }
+        }, 40);
+      });
+    }
+
+    if (secForm) {
+      secForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const entered = secInput.value.trim().toLowerCase();
+
+        if (entered !== SECONDARY_PASSKEY) {
+          sfx.errorBuzz();
+          secFeedback.className = 'secondary-feedback error';
+          secFeedback.textContent =
+            'ACESSO NEGADO // CHAVE SECUNDÁRIA INVÁLIDA. PROTOCOLO DE SEGURANÇA MANTIDO.';
+          return;
+        }
+
+        // Secondary Passkey Accepted!
+        isSecondaryUnlocked = true;
+        isUnlocked = true;
+        sfx.breachSuccess();
+        secFeedback.className = 'secondary-feedback success';
+        secFeedback.textContent =
+          'CHAVE NEURAL RECONHECIDA // AUTENTICAÇÃO CONFIRMADA // LIBERANDO PRONTUÁRIOS MÉDICOS...';
+
+        document.getElementById('header-security-state').textContent =
+          'SECURITY: ICE BREACHED // ROOT ACCESS CONCEDIDO [NÍVEL ÔMEGA]';
+        document.getElementById('prime-directive-banner').textContent =
+          'ENGRAM VAULT UNLOCKED: ELYNALIZE';
+
+        // Unlock Gates 3 & 4
+        ['chain-3', 'chain-4'].forEach((gId, idx) => {
+          setTimeout(() => {
+            sfx.gateUnlock(idx + 3);
+            const el = document.getElementById(gId);
+            if (el) {
+              el.classList.add('unlocked');
+              const statusSpan = el.querySelector('span:last-child');
+              if (statusSpan) statusSpan.textContent = '[OPEN]';
+            }
+            if (idx === 1) {
+              setTimeout(() => {
+                if (secModal) secModal.classList.remove('active');
+                openNeuralMedicalHudModal();
+              }, 450);
+            }
+          }, idx * 280);
+        });
+      });
+    }
+  }
+
+  function setupNeuralMedicalHudController() {
+    const advanceBtn = document.getElementById('btn-advance-to-fastnav');
+    const showRefBtn = document.getElementById('btn-hud-show-ref');
+    const closeHudBtn = document.getElementById('btn-close-neural-hud');
+    const reopenBtn = document.getElementById('btn-reopen-medical-hud');
+    const hudModal = document.getElementById('modal-neural-hud');
+    const refModal = document.getElementById('modal-ref-bla');
+    const closeRefBtn = document.getElementById('btn-close-ref-modal');
+
+    if (advanceBtn) {
+      advanceBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (hudModal) hudModal.classList.remove('active');
+        startFastNavigationSequence();
+      });
+    }
+
+    if (closeHudBtn) {
+      closeHudBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (hudModal) hudModal.classList.remove('active');
+      });
+    }
+
+    if (hudModal) {
+      hudModal.addEventListener('click', (e) => {
+        if (e.target === hudModal) {
+          hudModal.classList.remove('active');
+        }
+      });
+    }
+
+    if (showRefBtn) {
+      showRefBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (refModal) refModal.classList.add('active');
+      });
+    }
+
+    if (closeRefBtn) {
+      closeRefBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (refModal) refModal.classList.remove('active');
+      });
+    }
+
+    if (refModal) {
+      refModal.addEventListener('click', (e) => {
+        if (e.target === refModal) {
+          refModal.classList.remove('active');
+        }
+      });
+    }
+
+    if (reopenBtn) {
+      reopenBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        if (!isPrimaryUnlocked) {
+          sfx.errorBuzz();
+          const feedback = document.getElementById('login-feedback-msg');
+          if (feedback) {
+            feedback.className = 'login-feedback error';
+            feedback.textContent = 'ACESSO NEGADO // É NECESSÁRIO FAZER LOGIN PRIMÁRIO PRIMEIRO.';
+          }
+          return;
+        }
+
+        if (isSecondaryUnlocked) {
+          openNeuralMedicalHudModal();
+        } else {
+          openSecondaryAuthModal();
+        }
+      });
+    }
   }
 
   // =========================================================================
@@ -547,15 +913,15 @@
       title: 'INVASÃO DE SUB-REDE ARASAKA — QUEBRA DE ICE NÍVEL 9',
       schematic: 'ICE_TOPOLOGY_MNL.BIN',
       mode: 'grid',
-      lore: `> CREDENCIAL ACEITA: admin-arasaka2077\n> CHAVE DE CONTENÇÃO: ely_containment_project204077\n> BYPASSANDO DAEMONS DE DEFESA ARASAKA...\n\nConectando aos servidores subterrâneos de Night City e Tóquio. Redirecionando tráfego através de nós fantasmas para acessar a divisão de Projetos Especiais e Bio-Engenharia Neural.`
+      lore: `> CREDENCIAL ACEITA: OPERADOR ARASAKA-MNL\n> CHAVE DE CONTENÇÃO: [CRIPTOGRAFADA / BYPASS CONFIRMADO]\n> BYPASSANDO DAEMONS DE DEFESA ARASAKA...\n\nConectando aos servidores subterrâneos de Night City e Tóquio. Redirecionando tráfego através de nós fantasmas para acessar a divisão de Projetos Especiais e Bio-Engenharia Neural.`
     },
     {
       path: '//ARASAKA_MNL/R&D/SECURE_YOUR_SOUL_DB',
-      badge: 'NODE 02 // PROGRAMA "GARANTA SUA ALMA"',
-      title: 'ARQUITETURA DE DIGITALIZAÇÃO DE CONSCIÊNCIA',
-      schematic: 'SOULKILLER_MATRIX_V4.RAW',
+      badge: 'NODE 02 // PROGRAMA "GARANTA SUA ALMA" & HUD MÉDICO',
+      title: 'DIGITALIZAÇÃO CEREBRAL & ESTASE DO CORPO: ELYNALIZE',
+      schematic: 'SOULKILLER_BRAIN_SCAN_ELYNALIZE.RAW',
       mode: 'wave',
-      lore: `> ACESSANDO DIRETÓRIO: SECURE YOUR SOUL (SYS-2077)\n> STATUS DO PROJETO: ATIVO / CLASSIFICAÇÃO ULTRA-SECRETA\n\nMapeamento sináptico completo capaz de converter a mente, memórias e personalidade humana ("Alma") em código binário executável, permitindo armazenamento ou transferência para bio-chips.`
+      lore: `> ACESSANDO DIRETÓRIO: SECURE YOUR SOUL // HUD MÉDICO ELYNALIZE\n> CÉREBRO EM DIGITALIZAÇÃO: brain.gif [80,935 BYTES COMPILADOS]\n> CORPO BIOLÓGICO: ESTASE CRIO-NEURAL (4.2°C / 72 BPM)\n\nExtração de consciência em andamento. Mapeamento dos lobos cerebrais de Elynalize para empacotamento no chip "Prison", enquanto seu corpo biológico permanece isolado em estase.`
     },
     {
       path: '//ARASAKA_MNL/R&D/PROJECT_RELIC_2077',
@@ -603,7 +969,7 @@
       title: 'ALVO LOCALIZADO: CONTENÇÃO DA NETRUNNER "ELYNALIZE"',
       schematic: 'TARGET_LOCK_ELYNALIZE.OMEGA',
       mode: 'lock',
-      lore: `> DESCRIPTOGRAFANDO DOSSIÊ #204077-ELY...\n> NOME DO ALVO: ELYNALIZE (NETRUNNER DE ALTO NÍVEL)\n> STATUS: NEUTRALIZADA // MENTE E ALMA ARRANCADAS PARA "PENDRIVE" L2-SEC_EP\n> CORPO BIOLÓGICO: RESERVADO EM INSTALAÇÃO SEPARADA\n> INICIANDO RECONSTRUÇÃO VISUAL EM BYTES...`
+      lore: `> DESCRIPTOGRAFANDO DOSSIÊ #204077-ELY...\n> NOME DO ALVO: ELYNALIZE (NETRUNNER DE ALTO NÍVEL)\n> STATUS: NEUTRALIZADA // MENTE E ALMA ARRANCADAS PARA O CHIP "PRISON"\n> CORPO BIOLÓGICO: RESERVADO EM INSTALAÇÃO SEPARADA\n> INICIANDO RECONSTRUÇÃO VISUAL EM BYTES...`
     }
   ];
 
@@ -682,7 +1048,6 @@
       ctx.strokeStyle = fastStepIndex >= 5 ? '#00f0ff' : '#ff002b';
       ctx.lineWidth = 1.5;
 
-      // Draw dynamic cyber-schematic (Relic chip / AI neural nodes)
       ctx.beginPath();
       for (let i = 0; i < 18; i++) {
         const ang = (i / 18) * Math.PI * 2 + t * 0.002;
@@ -695,7 +1060,6 @@
       ctx.closePath();
       ctx.stroke();
 
-      // Byte dump overlay
       ctx.fillStyle = '#ff6b81';
       ctx.font = '10px "Share Tech Mono", monospace';
       for (let r = 0; r < 6; r++) {
@@ -722,63 +1086,83 @@
         ['CODINOME / ALVO', 'ELYNALIZE'],
         ['CLASSIFICAÇÃO DE AMEAÇA', 'NÍVEL OMEGA (NETRUNNER DE ELITE)'],
         ['STATUS ATUAL', 'NEUTRALIZADA / DIVIDIDA'],
-        ['MENTE & ALMA (CONSCIÊNCIA)', 'EXTRAÍDA EM CHIP ("PENDRIVE")'],
+        ['MENTE & ALMA (CONSCIÊNCIA)', 'EXTRAÍDA NO CHIP "PRISON"'],
         ['CORPO BIOLÓGICO', 'RESERVADO EM COFRE CRIOGÊNICO DISTINTO'],
         ['INTEGRIDADE DO ENGRAMA', '99.4% (CONSCIÊNCIA ATIVA E CONTIDA)']
       ]
     },
-    pendrive: {
-      subBadge: 'ARQUIVO 02 // HARDWARE DE CONTENÇÃO DE ALMA (RELIC-DRIVE)',
-      heading: 'CHIP "PENDRIVE" L2-SEC_EP',
-      filename: 'DECODING IN BYTES: pendrive.png [135,014 BYTES // CONTAINMENT CHIP]',
-      lore: `UNIDADE DE CONTENÇÃO "PENDRIVE" (MODELO L2-SEC_EP // QUARITCH, M. / ARASAKA SEC): Dispositivo derivado da tecnologia do Projeto Relic e dos estudos de Constructos de Edgerunners 2. Dentro do invólucro translúcido blindado pulsam as ondas roxas da consciência e da alma de Elynalize, comprimidas em bytes puros e totalmente desconectadas de qualquer rede externa para impedir sua fuga.`,
+    prison: {
+      subBadge: 'ARQUIVO 02 // HARDWARE DE CONTENÇÃO DE ALMA (CHIP "PRISON")',
+      heading: 'CHIP "PRISON" (CONSCIÊNCIA)',
+      filename: 'DECODING IN BYTES: prison_chip.png [135,014 BYTES // CHIP "PRISON"]',
+      lore: `UNIDADE DE CONTENÇÃO "PRISON" (MODELO PRISON-09 // ARASAKA SEC): Dispositivo derivado da tecnologia do Projeto Relic e dos estudos de Constructos de Edgerunners 2. Dentro do invólucro translúcido ultra-blindado pulsam as ondas roxas da consciência e da alma de Elynalize, comprimidas em bytes puros e totalmente desconectadas de qualquer rede externa em regime air-gap absoluto para impedir sua fuga.`,
       specs: [
-        ['DISPOSITIVO DE GUARDA', 'CHIP / PENDRIVE NEURAL L2-SEC_EP'],
+        ['DISPOSITIVO DE GUARDA', 'CHIP DE CONTENÇÃO "PRISON"'],
+        ['NOME OFICIAL DO CHIP', 'PRISON (AIR-GAP NEURAL VAULT)'],
         ['CONTEÚDO ARMAZENADO', 'CONSCIÊNCIA & ALMA DE ELYNALIZE'],
-        ['MARCAÇÃO DE SEGURANÇA', 'AUTHORIZED PERSONNEL ONLY'],
+        ['MARCAÇÃO DE SEGURANÇA', 'AUTHORIZED PERSONNEL ONLY // CLASSIFIED'],
         ['ESPECTRO DE RESSONÂNCIA', 'VIOLETA PROFUNDO (ENGRAMA VIVO)'],
         ['ISOLAMENTO DE REDE', 'AIR-GAP ABSOLUTO (BLOQUEIO ICE FÍSICO)'],
-        ['LOCALIZAÇÃO DO PENDRIVE', 'DEPÓSITO / GALPÃO SETOR-09']
+        ['LOCALIZAÇÃO DO CHIP', 'DEPÓSITO / GALPÃO SETOR-09']
       ]
     },
     galpao: {
       subBadge: 'ARQUIVO 03 // LOCALIDADE DO DEPÓSITO DE CONTENÇÃO',
       heading: 'GALPÃO ARASAKA — SETOR 09',
       filename: 'DECODING IN BYTES: galpão.jpg [85,917 BYTES // VAULT LOCATION]',
-      lore: `LOCALIZAÇÃO REVELADA EM BYTES: O chip "Pendrive" contendo a mente e a alma de Elynalize está trancado no interior deste Galpão de Contenção de Alta Segurança da Arasaka (câmara blindada em vidro vermelho pressurizado). Enquanto sua consciência permanece presa neste depósito sob vigilância pesada, seu corpo biológico vivo é mantido separadamente em outro complexo secreto para impedir qualquer tentativa de reintegração.`,
+      lore: `LOCALIZAÇÃO REVELADA EM BYTES: O chip "Prison" contendo a mente e a alma de Elynalize está trancado no interior deste Galpão de Contenção de Alta Segurança da Arasaka (câmara blindada em vidro vermelho pressurizado). Enquanto sua consciência permanece presa neste depósito sob vigilância pesada, seu corpo biológico vivo é mantido separadamente em outro complexo secreto para impedir qualquer tentativa de reintegração.`,
       specs: [
         ['INSTALAÇÃO (MENTE/CHIP)', 'GALPÃO DE CONTENÇÃO ARASAKA SETOR-09'],
         ['COORDENADAS DE REDE', '35.6895° N, 139.6917° E // SUB-NÍVEL 4'],
         ['CÂMARA INTERNA', 'SALA BLINDADA VERMELHA (FARADAY CAGE)'],
         ['LOCAL DO CORPO FÍSICO', 'COMPLEXO BIO-TARTARUS (SEPARADO)'],
         ['PROTOCOLO DE GUARDA', 'TURRETS AUTOMÁTICAS + ICE LETAL'],
-        ['RISCO DE RESGATE', 'CRÍTICO — NÃO CONECTAR O PENDRIVE']
+        ['RISCO DE RESGATE', 'CRÍTICO — NÃO CONECTAR O CHIP "PRISON"']
       ]
     },
     overview: {
       subBadge: 'MATRIZ COMPLETA // DOSSIÊ INTEGRADO EM BYTES',
-      heading: 'ELYNALIZE // CHIP // GALPÃO',
-      filename: 'MULTI-STREAM BYTE MATRIX: [ROSTO + PENDRIVE + GALPÃO]',
-      lore: `VISÃO CONSOLIDADA DA OPERAÇÃO: (1) A Netrunner de alto nível Elynalize, neutralizada pela Arasaka; (2) O chip chamado de "Pendrive" (L2-SEC_EP) onde sua mente e alma estão aprisionadas; e (3) O Galpão de segurança onde o chip está guardado, longe de seu corpo físico reservado em outro espaço.`,
+      heading: 'ELYNALIZE // CHIP "PRISON" // GALPÃO',
+      filename: 'MULTI-STREAM BYTE MATRIX: [ROSTO + CHIP "PRISON" + GALPÃO]',
+      lore: `VISÃO CONSOLIDADA DA OPERAÇÃO: (1) A Netrunner de alto nível Elynalize, neutralizada pela Arasaka; (2) O chip "Prison" onde sua mente e alma estão aprisionadas; e (3) O Galpão de segurança onde o chip está guardado, longe de seu corpo físico reservado em outro espaço.`,
       specs: [
         ['01. SUJEITO NEUTRALIZADO', 'ELYNALIZE (ROSTO EM BYTES)'],
-        ['02. PRISÃO DA CONSCIÊNCIA', 'PENDRIVE L2-SEC_EP (CHIP EM BYTES)'],
+        ['02. PRISÃO DA CONSCIÊNCIA', 'CHIP "PRISON" (CONSCIÊNCIA EM BYTES)'],
         ['03. LOCAL DO DEPÓSITO', 'GALPÃO SETOR-09 (LOCAL EM BYTES)'],
         ['SEPARAÇÃO MENTE/CORPO', '100% CONFIRMADA (PROTOCOLO SOULKILLER)'],
-        ['CHAVE DE ACESSO USADA', 'ely_containment_project204077'],
-        ['OPERADOR CONECTADO', 'admin-arasaka2077']
+        ['CHAVE SECUNDÁRIA', 'AUTORIZADA [DESBLOQUEIO NEURAL ÔMEGA]'],
+        ['CHAVE PRIMÁRIA', 'VERIFICADA [PROTOCOLO ARASAKA-MNL]'],
+        ['OPERADOR CONECTADO', 'AUTENTICADO [ACESSO NÍVEL 9]']
+      ]
+    },
+    medicalhud: {
+      subBadge: 'ARQUIVO 05 // HUD MÉDICO: ESCANEAMENTO CEREBRAL & CORPO',
+      heading: 'CÉREBRO & CORPO DE ELYNALIZE',
+      filename: 'DECODING IN BYTES: brain.gif + bla.png [80,935 BYTES // MEDICAL HUD]',
+      lore: `RELATÓRIO DO HUD MÉDICO: O escaneamento cerebral de Elynalize revela o processo exato em que seu córtex foi digitalizado em bytes pelo Soulkiller. Enquanto sua mente e alma foram arrancadas e compactadas no chip "Prison" guardado no Galpão 09, seu corpo biológico permanece em estase criogênica a 4.2°C no Complexo Bio-Tartarus, com ritmo cardíaco artificial de 72 BPM e funções cerebrais totalmente desativadas (0.00% residual).`,
+      specs: [
+        ['SUJEITO CATALOGADO', 'ELYNALIZE (X-FORCE_095 // OMEGA)'],
+        ['MENTE / CONSCIÊNCIA', 'EXTRAÍDA EM BYTES VIA SOULKILLER'],
+        ['LOCAL DO ENGRAMA (CHIP)', 'CHIP "PRISON" (GALPÃO SETOR-09)'],
+        ['CORPO BIOLÓGICO', 'SEPARADO / SEM ALMA (ESTASE CRIOGÊNICA)'],
+        ['LOCAL DO CORPO FÍSICO', 'COMPLEXO BIO-TARTARUS (OFF-SITE)'],
+        ['TEMPERATURA CORPORAL', '4.2°C (ESTASE CRIO-NEURAL ESTÁVEL)'],
+        ['SÍNTESE CARDÍACA', '72 BPM (SINTÉTICO / CONTÍNUO)'],
+        ['AUTENTICAÇÃO NEURAL', 'NÍVEL ÔMEGA (VERIFICADA)']
       ]
     }
   };
 
-  let currentRevealTarget = 'elynalize'; // 'elynalize' | 'pendrive' | 'galpao' | 'overview'
-  let currentRenderMode = 'holo'; // 'holo' | 'pure' | 'rednet'
+  // Support backward compatibility key
+  CONTAINMENT_DOSSIER_DATA.pendrive = CONTAINMENT_DOSSIER_DATA.prison;
+
+  let currentRevealTarget = 'elynalize';
+  let currentRenderMode = 'holo';
   let decodeProgress = 0;
   let autoCycleEnabled = true;
   let autoCycleTimer = null;
   let byteCanvasFrame = null;
 
-  // Pre-sampled pixel caches for smooth 60fps byte rendering
   const sampledCache = {};
 
   function openContainmentDossier() {
@@ -798,7 +1182,7 @@
 
   function startAutoCycleTimer() {
     if (autoCycleTimer) clearInterval(autoCycleTimer);
-    const order = ['elynalize', 'pendrive', 'galpao', 'overview'];
+    const order = ['elynalize', 'prison', 'galpao', 'overview', 'medicalhud'];
     autoCycleTimer = setInterval(() => {
       if (!autoCycleEnabled || currentStage !== 3) return;
       const nextIdx = (order.indexOf(currentRevealTarget) + 1) % order.length;
@@ -807,16 +1191,16 @@
   }
 
   function selectRevealTarget(targetKey) {
+    if (targetKey === 'pendrive') targetKey = 'prison';
     currentRevealTarget = targetKey;
-    decodeProgress = 0; // Trigger fresh byte-by-byte laser scan reconstruction!
+    decodeProgress = 0;
     sfx.gateUnlock(2);
 
-    // Update active tab UI
     document.querySelectorAll('.reveal-tab-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.getAttribute('data-target') === targetKey);
+      const bTarget = btn.getAttribute('data-target');
+      btn.classList.toggle('active', bTarget === targetKey || (bTarget === 'pendrive' && targetKey === 'prison'));
     });
 
-    // Update left dossier text and specs
     const info = CONTAINMENT_DOSSIER_DATA[targetKey];
     if (info) {
       document.getElementById('dossier-sub-badge').textContent = info.subBadge;
@@ -830,7 +1214,6 @@
         .join('');
     }
 
-    // Rebuild pixel sample cache for current canvas size
     rebuildByteSampleForTarget(targetKey);
   }
 
@@ -851,11 +1234,10 @@
     octx.fillRect(0, 0, off.width, off.height);
 
     if (targetKey === 'overview') {
-      // Draw all 3 images side-by-side in one unified byte matrix!
-      const keys = ['elynalize', 'pendrive', 'galpao'];
+      const keys = ['elynalize', 'prison', 'galpao'];
       const slotW = off.width / 3;
       keys.forEach((k, idx) => {
-        const img = loadedImages[k];
+        const img = loadedImages[k] || loadedImages.pendrive;
         if (!img) return;
         const pad = 14;
         const availW = slotW - pad * 2;
@@ -867,8 +1249,22 @@
         const dy = (off.height - dh) / 2;
         octx.drawImage(img, dx, dy, dw, dh);
       });
+    } else if (targetKey === 'medicalhud') {
+      const img = loadedImages.bla || loadedImages.brain;
+      if (img) {
+        const scale = Math.min(
+          (off.width * 0.94) / img.width,
+          (off.height * 0.94) / img.height
+        );
+        const dw = img.width * scale;
+        const dh = img.height * scale;
+        const dx = (off.width - dw) / 2;
+        const dy = (off.height - dh) / 2;
+        octx.drawImage(img, dx, dy, dw, dh);
+      }
     } else {
-      const img = loadedImages[targetKey];
+      const imgKey = (targetKey === 'prison') ? ('prison' in loadedImages ? 'prison' : 'pendrive') : targetKey;
+      const img = loadedImages[imgKey] || loadedImages.prison || loadedImages.pendrive;
       if (img) {
         const scale = Math.min(
           (off.width * 0.92) / img.width,
@@ -884,7 +1280,6 @@
 
     const rawData = octx.getImageData(0, 0, off.width, off.height).data;
     const cells = [];
-    // Fine cell grid so faces, text on the pendrive, and the red glass warehouse look super crisp in bytes!
     const stepX = 6;
     const stepY = 7;
     const hexChars = '0123456789ABCDEF';
@@ -897,8 +1292,7 @@
         let b = rawData[i + 2];
         const a = rawData[i + 3];
 
-        // For pendrive.png, its background is white (255,255,255); convert near-white exterior to dark cyber background
-        if (targetKey === 'pendrive' || (targetKey === 'overview' && x >= off.width / 3 && x < (off.width * 2) / 3)) {
+        if (targetKey === 'prison' || targetKey === 'pendrive' || (targetKey === 'overview' && x >= off.width / 3 && x < (off.width * 2) / 3)) {
           if (r > 238 && g > 238 && b > 238) {
             r = 8;
             g = 0;
@@ -908,7 +1302,6 @@
 
         const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         if (a > 20 && lum > 0.035) {
-          // Boost color saturation & contrast for glowing byte look
           const boost = 1.28;
           const br = Math.min(255, Math.floor(r * boost));
           const bg = Math.min(255, Math.floor(g * boost));
@@ -957,7 +1350,6 @@
         ctx.fillStyle = '#030002';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Advance byte decoding progress
         if (decodeProgress < 1.05) {
           decodeProgress += 0.012;
           if (Math.random() < 0.35) sfx.dataTick();
@@ -970,8 +1362,6 @@
 
         const scanLineY = Math.min(canvas.height, decodeProgress * canvas.height);
 
-        // In HOLO-BYTES mode, render a clipped phosphor-glow base under the decoded region so fine facial features,
-        // the purple waves inside the pendrive, and the red glass warehouse are 100% unmistakable while covered in living bytes!
         if (currentRenderMode === 'holo') {
           ctx.save();
           ctx.beginPath();
@@ -982,7 +1372,6 @@
           ctx.restore();
         }
 
-        // Draw every single byte character in the matrix
         ctx.font = 'bold 7px "Share Tech Mono", monospace';
         const cells = cache.cells;
         const pulseRow = ((timestamp * 0.12) % canvas.height);
@@ -990,7 +1379,6 @@
         for (let i = 0; i < cells.length; i++) {
           const c = cells[i];
           if (c.normY > decodeProgress) {
-            // Falling encrypted byte rain just ahead of the decoding laser
             if (c.normY - decodeProgress < 0.08 && Math.random() < 0.22) {
               ctx.fillStyle = currentRevealTarget === 'galpao' ? '#ff002b' : '#b833ff';
               ctx.fillText(c.ch, c.x, c.y);
@@ -1015,7 +1403,6 @@
           ctx.fillText(c.ch, c.x, c.y);
         }
 
-        // Draw active laser scanline while decoding
         if (decodeProgress < 1.0) {
           ctx.strokeStyle = '#00f0ff';
           ctx.lineWidth = 2;
@@ -1025,12 +1412,11 @@
           ctx.stroke();
         }
 
-        // Draw HUD labels for Overview mode
         if (currentRevealTarget === 'overview') {
           const slotW = canvas.width / 3;
           const titles = [
             '01. ELYNALIZE (MENTE EXTRAÍDA)',
-            '02. CHIP "PENDRIVE" L2-SEC_EP',
+            '02. CHIP "PRISON" (CONSCIÊNCIA)',
             '03. GALPÃO DE CONTENÇÃO SETOR-09'
           ];
           ctx.font = 'bold 11px "Orbitron", monospace';
@@ -1047,6 +1433,7 @@
     }
     byteCanvasFrame = requestAnimationFrame(animateByteRevealCanvas);
   }
+
 
   // Interactive Byte Loupe Inspector when hovering over the Byte Canvas
   function setupByteCanvasInteractions() {
@@ -1182,11 +1569,361 @@
   }
 
   // =========================================================================
-  // 9. INITIALIZATION & RESIZE HANDLER
+  // 10. MEDICAL HUD ANIMATIONS: BRAIN SCAN BYTES, DNA ROTATION & 72 BPM ECG
+  // (Generated by bytes from reference 'bla.png' & 'brain.gif')
+  // =========================================================================
+
+  // Medical HUD Canvases
+  const neuralBrainCanvas = document.getElementById('neural-brain-byte-canvas');
+  const neuralDnaCanvas = document.getElementById('neural-dna-canvas');
+  const neuralEcgCanvas = document.getElementById('neural-ecg-canvas');
+
+  const brainByteNodes = [
+    { name: 'CÓRTEX PRÉ-FRONTAL', nx: 0.35, ny: 0.32, status: '100% EXTRAÍDO', color: '#00f0ff' },
+    { name: 'HIPOCAMPO [MEM]', nx: 0.62, ny: 0.48, status: 'COMPILADO EM BYTES', color: '#ff002b' },
+    { name: 'PONTE NEURAL', nx: 0.48, ny: 0.72, status: 'LINK CHIP PRISON', color: '#b833ff' },
+    { name: 'LOBO TEMPORAL', nx: 0.24, ny: 0.58, status: 'ISOLAMENTO AIR-GAP', color: '#ff002b' }
+  ];
+
+  // High-performance single-pass resize function (never called on animation frames!)
+  function resizeMedicalCanvases() {
+    [
+      { c: neuralBrainCanvas, minW: 180, minH: 100 },
+      { c: neuralDnaCanvas, minW: 100, minH: 60 },
+      { c: neuralEcgCanvas, minW: 160, minH: 40 }
+    ].forEach(({ c, minW, minH }) => {
+      if (!c || !c.parentElement) return;
+      const rect = c.parentElement.getBoundingClientRect();
+      const w = Math.max(minW, Math.floor(rect.width));
+      const h = Math.max(minH, Math.floor(rect.height));
+      if (c.width !== w || c.height !== h) {
+        c.width = w;
+        c.height = h;
+      }
+    });
+  }
+
+  function animateBrainByteCanvases(timestamp) {
+    if (neuralBrainCanvas && neuralBrainCanvas.offsetParent !== null) {
+      const ctx = neuralBrainCanvas.getContext('2d');
+      const w = neuralBrainCanvas.width;
+      const h = neuralBrainCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Laser scan sweep line
+      const laserY = ((timestamp * 0.08) % (h + 40)) - 20;
+
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.85)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.moveTo(10, laserY);
+      ctx.lineTo(w - 10, laserY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Secondary fine red beam
+      ctx.strokeStyle = 'rgba(255, 0, 43, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(20, laserY + 3);
+      ctx.lineTo(w - 20, laserY + 3);
+      ctx.stroke();
+
+      // Digital byte stream rain over brain
+      ctx.font = 'bold 8px "Share Tech Mono", monospace';
+      const hexList = ['0x7F', '0xA4', '0x2077', '0x095', '0xFF', '1', '0', '0x1C'];
+      for (let i = 0; i < 9; i++) {
+        const seed = timestamp * 0.003 + i * 43.17;
+        const bx = 20 + ((i * 37) % (w - 40));
+        const by = ((seed * 40) % (h - 20)) + 10;
+        const char = hexList[(i + Math.floor(seed)) % hexList.length];
+        ctx.fillStyle = i % 3 === 0 ? '#00f0ff' : i % 3 === 1 ? '#ff4d6a' : '#ffffff';
+        ctx.fillText(char, bx, by);
+      }
+
+      // Brain synaptic nodes with crosshairs and brackets
+      brainByteNodes.forEach((node, idx) => {
+        const px = node.nx * w;
+        const py = node.ny * h;
+
+        // Pulsing radius
+        const pulse = 3 + Math.sin(timestamp * 0.005 + idx) * 1.5;
+
+        // Circle
+        ctx.strokeStyle = node.color;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(px, py, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = node.color;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crosshairs
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(px - pulse - 3, py);
+        ctx.lineTo(px + pulse + 3, py);
+        ctx.moveTo(px, py - pulse - 3);
+        ctx.lineTo(px, py + pulse + 3);
+        ctx.stroke();
+
+        // Small tag
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '7px "Share Tech Mono", monospace';
+        ctx.fillText(node.name, px + pulse + 4, py - 2);
+      });
+    }
+
+    requestAnimationFrame(animateBrainByteCanvases);
+  }
+
+  // DNA Chain 3D Rotation Animation
+  function animateDnaCanvases(timestamp) {
+    if (neuralDnaCanvas && neuralDnaCanvas.offsetParent !== null) {
+      const ctx = neuralDnaCanvas.getContext('2d');
+      const w = neuralDnaCanvas.width;
+      const h = neuralDnaCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const t = timestamp * 0.0022;
+      const numNodes = 14;
+      const stepY = (h - 20) / numNodes;
+      const radius = Math.min(36, w * 0.32);
+      const byteChars = ['A', 'T', 'C', 'G', '0', '1'];
+
+      for (let i = 0; i < numNodes; i++) {
+        const y = 10 + i * stepY;
+        const angle = t + i * 0.48;
+        const sinVal = Math.sin(angle);
+        const cosVal = Math.cos(angle);
+
+        const x1 = cx + sinVal * radius;
+        const x2 = cx - sinVal * radius;
+
+        // Connecting rung line
+        ctx.strokeStyle = 'rgba(255, 0, 43, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+
+        // Byte char in center of rung
+        const ch = byteChars[(i + Math.floor(t * 3)) % byteChars.length];
+        ctx.fillStyle = cosVal > 0 ? 'rgba(0, 240, 255, 0.7)' : 'rgba(255, 77, 106, 0.7)';
+        ctx.font = '6px "Share Tech Mono", monospace';
+        ctx.fillText(ch, cx - 2, y + 2);
+
+        // Strand 1 node
+        const r1 = 2.5 + cosVal * 1.2;
+        ctx.fillStyle = cosVal > 0 ? '#00f0ff' : '#0066cc';
+        ctx.beginPath();
+        ctx.arc(x1, y, Math.max(1, r1), 0, Math.PI * 2);
+        ctx.fill();
+
+        // Strand 2 node
+        const r2 = 2.5 - cosVal * 1.2;
+        ctx.fillStyle = cosVal <= 0 ? '#ff002b' : '#ff7a8e';
+        ctx.beginPath();
+        ctx.arc(x2, y, Math.max(1, r2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    requestAnimationFrame(animateDnaCanvases);
+  }
+
+  // 72 BPM Electrocardiogram (ECG / EKG) Oscilloscope Wave
+  const ecgHistory = [];
+  let lastBeatTime = 0;
+
+  function animateEcgCanvases(timestamp) {
+    // 72 beats per minute = 1 beat every 833.3ms
+    const beatInterval = 833.3;
+    const beatPhase = (timestamp % beatInterval) / beatInterval;
+
+    // Synthesize realistic P-Q-R-S-T ECG cardiac waveform
+    let val = 0;
+    if (beatPhase >= 0.12 && beatPhase < 0.22) {
+      val = Math.sin((beatPhase - 0.12) / 0.10 * Math.PI) * 0.18;
+    } else if (beatPhase >= 0.28 && beatPhase < 0.31) {
+      val = -Math.sin((beatPhase - 0.28) / 0.03 * Math.PI) * 0.22;
+    } else if (beatPhase >= 0.31 && beatPhase < 0.38) {
+      val = Math.sin((beatPhase - 0.31) / 0.07 * Math.PI) * 1.0;
+      if (timestamp - lastBeatTime > 600) {
+        lastBeatTime = timestamp;
+        if (sfx.enabled && (currentStage === 1 || (neuralEcgCanvas && neuralEcgCanvas.offsetParent !== null))) {
+          sfx.playTone(85, 0.035, 'sine', 0.02);
+        }
+      }
+    } else if (beatPhase >= 0.38 && beatPhase < 0.43) {
+      val = -Math.sin((beatPhase - 0.38) / 0.05 * Math.PI) * 0.35;
+    } else if (beatPhase >= 0.52 && beatPhase < 0.68) {
+      val = Math.sin((beatPhase - 0.52) / 0.16 * Math.PI) * 0.25;
+    }
+
+    ecgHistory.push(val);
+    if (ecgHistory.length > 200) {
+      ecgHistory.shift();
+    }
+
+    if (neuralEcgCanvas && neuralEcgCanvas.offsetParent !== null) {
+      const ctx = neuralEcgCanvas.getContext('2d');
+      const w = neuralEcgCanvas.width;
+      const h = neuralEcgCanvas.height;
+      const midY = h / 2;
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw ECG wave path
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+
+      const stepX = w / (ecgHistory.length - 1 || 1);
+      for (let i = 0; i < ecgHistory.length; i++) {
+        const x = i * stepX;
+        const y = midY - ecgHistory[i] * (h * 0.42);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Lead sweep dot at head of trace
+      const lastX = (ecgHistory.length - 1) * stepX;
+      const lastY = midY - ecgHistory[ecgHistory.length - 1] * (h * 0.42);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(animateEcgCanvases);
+  }
+
+  // =========================================================================
+  // 11. BOOT PROCESS CONTROLLER (ARASAKA LOGO BIT DIGITALIZATION)
+  // =========================================================================
+  function setupBootProcessController() {
+    const bootOverlay = document.getElementById('terminal-boot-overlay');
+    const bootProgressFill = document.getElementById('boot-progress-fill');
+    const bootStatusText = document.getElementById('boot-status-text');
+    const bootSkipBtn = document.getElementById('btn-boot-skip');
+    const bootEnterBtn = document.getElementById('btn-boot-enter-main');
+    const bootRescanBtn = document.getElementById('btn-boot-rescan');
+    const bootLogEl = document.getElementById('boot-terminal-log');
+
+    let bootProgress = 0;
+    let bootFinished = false;
+    let bootTimer = null;
+
+    const bootLogLines = [
+      '> [KERNEL-ARASAKA] Inicializando micro-sistema Arasaka Sub-Net...',
+      '> [ICE-STATUS] Nível de segurança: OMEGA // 4 barreiras de criptografia ativas.',
+      '> [CODEC-BIT] Digitalizando logo institucional da Arasaka em coordenadas binárias...',
+      '> [IMAGE-RECON] Dimensões processadas: 580x190 // Matriz de bits compilada com sucesso.',
+      '> [DATA-STREAM] Conectando bio-telemetria do Cérebro e Corpo de Elynalize...',
+      '> [ENGRAM-CONTAINMENT] Mapeamento concluído: Mente e alma gravadas no chip "Prison".',
+      '> [SYSTEM-READY] Processo de abertura finalizado. Acesso ao terminal liberado.'
+    ];
+
+    let logIndex = 0;
+
+    function runBootSequence() {
+      bootProgress = 0;
+      bootFinished = false;
+      logIndex = 0;
+      if (bootOverlay) bootOverlay.classList.remove('hidden');
+      if (bootLogEl) bootLogEl.innerHTML = '';
+
+      buildBootLogoBitMatrix();
+
+      if (bootTimer) clearInterval(bootTimer);
+
+      bootTimer = setInterval(() => {
+        if (bootFinished) return;
+        bootProgress += 1.8;
+        if (bootProgress > 100) bootProgress = 100;
+
+        if (bootProgressFill) bootProgressFill.style.width = `${bootProgress}%`;
+
+        // Stream terminal log lines at progress thresholds
+        const targetLogIndex = Math.floor((bootProgress / 100) * bootLogLines.length);
+        while (logIndex < targetLogIndex && logIndex < bootLogLines.length) {
+          if (bootLogEl) {
+            const line = document.createElement('div');
+            line.className = 'boot-log-line';
+            line.textContent = bootLogLines[logIndex];
+            bootLogEl.appendChild(line);
+            bootLogEl.scrollTop = bootLogEl.scrollHeight;
+          }
+          logIndex++;
+        }
+
+        if (bootStatusText) {
+          if (bootProgress < 30) {
+            bootStatusText.textContent = `INICIALIZANDO TERMINAL ARASAKA... DIGITALIZANDO LOGO EM BITS: ${Math.floor(bootProgress)}%`;
+          } else if (bootProgress < 75) {
+            bootStatusText.textContent = `COMPILANDO MATRIZ BINÁRIA DA LOGO ARASAKA... [${Math.floor(bootProgress)}%]`;
+          } else if (bootProgress < 95) {
+            bootStatusText.textContent = `ESTABILIZANDO SISTEMA // CONSTRUCTO ELYNALIZE EM CHIP "PRISON" [${Math.floor(bootProgress)}%]`;
+          } else {
+            bootStatusText.textContent = `PROCESSO DE ABERTURA CONCLUÍDO // ACESSO AO TERMINAL LIBERADO (100%)`;
+          }
+        }
+
+        if (Math.random() < 0.28) sfx.dataTick();
+
+        if (bootProgress >= 100) {
+          clearInterval(bootTimer);
+          bootFinished = true;
+          sfx.gateUnlock(1);
+          setTimeout(() => {
+            if (bootOverlay && !bootOverlay.classList.contains('hidden')) {
+              closeBootOverlay();
+            }
+          }, 1400);
+        }
+      }, 70);
+    }
+
+    function closeBootOverlay() {
+      bootFinished = true;
+      if (bootTimer) clearInterval(bootTimer);
+      if (bootOverlay) bootOverlay.classList.add('hidden');
+      sfx.gateUnlock(2);
+    }
+
+    if (bootSkipBtn) bootSkipBtn.addEventListener('click', closeBootOverlay);
+    if (bootEnterBtn) bootEnterBtn.addEventListener('click', closeBootOverlay);
+
+    if (bootRescanBtn) {
+      bootRescanBtn.addEventListener('click', () => {
+        sfx.keyClick();
+        runBootSequence();
+      });
+    }
+
+    runBootSequence();
+  }
+
+  // =========================================================================
+  // 12. INITIALIZATION & RESIZE HANDLER
   // =========================================================================
   window.addEventListener('resize', () => {
     initBlackwallCanvas();
     buildArasakaLogoBitMatrix();
+    buildBootLogoBitMatrix();
+    resizeMedicalCanvases();
     if (currentStage === 3) {
       rebuildByteSampleForTarget(currentRevealTarget);
     }
@@ -1198,7 +1935,19 @@
     initHudWidgets();
     buildArasakaLogoBitMatrix();
     animateArasakaLogoBits(0);
+    buildBootLogoBitMatrix();
+    animateBootLogoBits(0);
+    resizeMedicalCanvases();
+    animateBrainByteCanvases(0);
+    animateDnaCanvases(0);
+    animateEcgCanvases(0);
     setupLoginController();
+    setupSecondaryAuthController();
+    setupNeuralMedicalHudController();
+    setupMedicalTabsController();
     setupByteCanvasInteractions();
+    setupBootProcessController();
   });
 })();
+
+
