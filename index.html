@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARASAKA - MNL // NETRUNNER OPERATIONS [PROJECT ELY-204077]</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Reference 4: Blackwall / Cyberspace Vertical Red & Blue Byte Streams -->
+  <canvas id="blackwall-canvas"></canvas>
+
+  <!-- Reference 1: Fine Crimson Grid & Central Arasaka 3-Lobe Emblem Watermark -->
+  <div class="arasaka-grid-bg"></div>
+  <svg class="arasaka-watermark" viewBox="0 0 200 200" fill="none">
+    <circle cx="100" cy="100" r="88" stroke="#ff002b" stroke-width="10"/>
+    <circle cx="100" cy="64" r="22" fill="#ff002b"/>
+    <circle cx="62" cy="96" r="22" fill="#ff002b"/>
+    <circle cx="138" cy="96" r="22" fill="#ff002b"/>
+    <path d="M100 80 L100 165 M62 110 L100 140 M138 110 L100 140" stroke="#ff002b" stroke-width="12" stroke-linecap="round"/>
+  </svg>
+
+  <!-- Reference 1: Outer Crimson Tech Frame & Corner Brackets -->
+  <div class="outer-frame-border"></div>
+  <div class="corner-bracket tl"></div>
+  <div class="corner-bracket tr"></div>
+  <div class="corner-bracket bl"></div>
+  <div class="corner-bracket br"></div>
+
+  <!-- CRT Scanlines & Vignette -->
+  <div class="crt-scanlines"></div>
+  <div class="crt-vignette"></div>
+
+  <!-- MAIN APPLICATION SHELL -->
+  <div id="app-shell">
+    <!-- ==================== TOP HEADER (References 1, 2, 3) ==================== -->
+    <header class="hud-header">
+      <!-- Top-Left Arasaka Brand Box (Referencia 1) -->
+      <div class="brand-box">
+        <div class="brand-wordmark">arasaka</div>
+        <div class="brand-sub">
+          <span>Netrunner Operations</span>
+          <strong>ARASAKA – MNL</strong>
+        </div>
+      </div>
+
+      <!-- Center Microtech Hydra Top Bar (Referencia 3) -->
+      <div class="hydra-banner">
+        <div class="hydra-bar-top">
+          <span>MICROTECH HYDRA VER. 2.1 &nbsp; 22.003</span>
+          <span id="header-security-state">SECURITY: ICE LOCKED // LEVEL-OMEGA</span>
+          <span>BV5451 N0554 V4445</span>
+        </div>
+        <div class="hydra-status-strip">
+          <div class="stage-pill-group">
+            <span class="stage-pill active" id="pill-stage-1">01 // AUTH &amp; LOGO.BITS</span>
+            <span class="stage-pill" id="pill-stage-2">02 // RELIC &amp; EDGERUNNERS II</span>
+            <span class="stage-pill" id="pill-stage-3">03 // CONTAINMENT: ELYNALIZE</span>
+          </div>
+          <div id="sys-clock-readout">SUBNET SYNC: 2077.10.24 // 04:19:88</div>
+        </div>
+      </div>
+
+      <!-- Top-Right CPU & Active Status (Referencia 2) -->
+      <div class="cpu-header-box">
+        <button class="audio-btn" id="btn-audio-toggle" title="Ativar/Desativar Sintetizador de Áudio Netrunner">
+          [SFX: ON]
+        </button>
+        <div class="reticle-mini"></div>
+        <div class="cpu-metrics">
+          <div>CPU.8131.RT5 <span class="cpu-tag">--3V6H.7471G--</span></div>
+          <div>LDA.7537.81 &nbsp; <span style="color:#ff8598;font-size:0.65rem;">ACTIVE STATUS</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== LEFT HUD COLUMN (References 2 & 3) ==================== -->
+    <aside class="hud-left">
+      <!-- Active Vision Spectrum (Referencia 2) -->
+      <div class="hud-panel chamfer">
+        <div class="panel-title">
+          <span>Active vision spectrum:</span>
+          <span style="font-size:0.62rem;color:#ff8093;">[CLICK]</span>
+        </div>
+        <ul class="spectrum-list" id="spectrum-selector">
+          <li data-spec="xray"><span>-X-RAY</span><span>0x01</span></li>
+          <li data-spec="infrared"><span>-INFRARED</span><span>0x02</span></li>
+          <li data-spec="telemetry"><span>-TELEMETRY</span><span>0x03</span></li>
+          <li data-spec="visible" class="active"><span>-[VISIBLE LIGHT]</span><span>0x04</span></li>
+          <li data-spec="radio"><span>-RADIO WAVES</span><span>0x05</span></li>
+          <li data-spec="polarized"><span>-POLARIZED LIGHT</span><span>0x06</span></li>
+          <li data-spec="ultraviolet"><span>-ULTRAVIOLET LIGHT</span><span>0x07</span></li>
+          <li data-spec="chemical"><span>-CHEMICAL SIGNATURE</span><span>0x08</span></li>
+          <li data-spec="radiological"><span>-RADIOLOGICAL SIGNATURE</span><span>0x09</span></li>
+          <li data-spec="electromagnetic"><span>-ELECTROMAGNETIC WAVES</span><span>0x0A</span></li>
+        </ul>
+      </div>
+
+      <!-- Self Assessment Box (Referencia 2) -->
+      <div class="hud-panel chamfer">
+        <div class="panel-title">
+          <span>SELF ASSESSMENT:</span>
+          <span>MNL-v9</span>
+        </div>
+        <div class="assessment-box">
+          <div class="assess-row"><span>-POWER LEVEL</span><span id="stat-pwr">98%</span></div>
+          <div class="assess-row"><span>-ICE BREAKER DAEMON</span><span id="stat-wpn">ONLINE</span></div>
+          <div class="assess-row"><span>-MAIN PROCESSOR</span><span id="stat-cpu">95%</span></div>
+          <div class="assess-row"><span>-SOULKILLER MMU</span><span id="stat-mmu">78%</span></div>
+          <div class="assess-row"><span>-ENGRAM EFF UNIT</span><span id="stat-eff">80%</span></div>
+          <div class="assess-status">
+            ASSESSMENT COMPLETE<br/>
+            -UNIT FULLY OPERATIONAL<br/>
+            -DECRYPTION EFFICIENCY 99.8%
+          </div>
+          <div class="prime-directive" id="prime-directive-banner">
+            CARRY OUT PRIME DIRECTIVE
+          </div>
+        </div>
+      </div>
+
+      <!-- Kernel Code Monitor with Callout Numbers (Referencia 3) -->
+      <div class="hud-panel hydra-code-box">
+        <div class="panel-title">
+          <span>KERNEL // HYDRA_STREAM</span>
+          <span>W 4035</span>
+        </div>
+        <div class="code-scroll-output" id="left-kernel-log"></div>
+        <div class="hydra-callout-footer">
+          <span>69546 &nbsp; 552-95</span>
+          <span>C 2047</span>
+        </div>
+      </div>
+
+      <!-- 3 Vertical Segmented Telemetry Bars (Referencia 2 Bottom-Left) -->
+      <div class="hud-panel telemetry-bars-card">
+        <div class="bars-header-nums">
+          <span id="bar-val-0">91.3</span>
+          <span id="bar-val-1">40.0</span>
+          <span id="bar-val-2">86.7</span>
+        </div>
+        <div class="bars-columns">
+          <div class="seg-bar-col" id="seg-col-0"></div>
+          <div class="seg-bar-col" id="seg-col-1"></div>
+          <div class="seg-bar-col" id="seg-col-2"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== CENTER MAIN VIEWPORT ==================== -->
+    <main class="hud-center">
+      <!-- Background Rotating HUD Scanner Rings & Rulers (Referencia 2) -->
+      <div class="center-hud-ring-layer">
+        <svg class="scanner-svg" viewBox="0 0 500 500">
+          <!-- Outer partial arc -->
+          <path d="M 110 140 A 190 190 0 1 1 390 360" fill="none" stroke="#ff002b" stroke-width="3" stroke-dasharray="220 40 80 30" class="ring-rot-cw"/>
+          <!-- Middle thick segmented tactical ring -->
+          <circle cx="250" cy="250" r="152" fill="none" stroke="#ff002b" stroke-width="12" stroke-dasharray="95 35 110 40 70 30" class="ring-rot-ccw"/>
+          <!-- Inner fine ring -->
+          <circle cx="250" cy="250" r="126" fill="none" stroke="#ff002b" stroke-width="4" stroke-dasharray="160 25 90 25" class="ring-rot-cw"/>
+          <!-- Center crosshair -->
+          <line x1="230" y1="250" x2="270" y2="250" stroke="#ff002b" stroke-width="1.5"/>
+          <line x1="250" y1="230" x2="250" y2="270" stroke="#ff002b" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <!-- Vertical Ruler Ticks (Referencia 2) -->
+      <div class="ruler-vertical">
+        <span>8.00</span>
+        <span>9.00</span>
+        <span>10.00</span>
+        <span>11.00</span>
+        <span>12.00</span>
+        <span>13.00</span>
+        <span>14.00</span>
+        <span style="color:#fff;font-weight:bold;">TGT.3316</span>
+      </div>
+
+      <!-- Horizontal Bottom Ruler (Referencia 2) -->
+      <div class="ruler-horizontal"></div>
+
+      <!-- =================================================================
+           STAGE 1: ARASAKA LOGO IN BITS + LOGIN GATE
+           ================================================================= -->
+      <section class="stage-view active" id="stage-login">
+        <div class="login-stage-layout">
+          <div class="logo-bits-header">
+            <span>// ARASAKA_CORP_IDENTITY_MATRIX // BIT-BY-BIT RECONSTRUCTION</span>
+            <span id="logo-bit-stats" style="color:var(--bw-cyan);">COMPILING LOGO BITS: 0%</span>
+          </div>
+
+          <!-- Canvas that recreates Arasaka_Logo_CP2077.webp in bits & bytes -->
+          <div class="logo-canvas-wrapper">
+            <canvas id="logo-bit-canvas"></canvas>
+            <div class="logo-bit-overlay-tag" id="logo-bit-mode-label">
+              SOURCE: Arasaka_Logo_CP2077.webp // MODE: BINARY BIT MATRIX (0/1)
+            </div>
+          </div>
+
+          <!-- Login Terminal Card requiring Username & Password -->
+          <div class="login-gate-card">
+            <div class="login-gate-header">
+              <div class="login-gate-title">
+                [ICE AUTHENTICATION // ACESSO RESTRITO ARASAKA-MNL]
+              </div>
+              <button type="button" class="autofill-btn" id="btn-auto-hack" title="Preenche automaticamente o usuário e senha com efeito de digitação">
+                ⚡ [AUTO-DIGITAR CREDENCIAIS]
+              </button>
+            </div>
+
+            <form id="arasaka-login-form" autocomplete="off">
+              <div class="login-form-grid">
+                <div class="field-group">
+                  <label for="input-username">
+                    <span>OPERATIVE ID (NOME DE USUÁRIO):</span>
+                    <span style="color:#777;">REQ_LVL_9</span>
+                  </label>
+                  <div class="cyber-input-wrap">
+                    <input
+                      type="text"
+                      id="input-username"
+                      class="cyber-input"
+                      placeholder="admin-arasaka2077"
+                      spellcheck="false"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="input-password">
+                    <span>ICE ACCESS PASSKEY (SENHA):</span>
+                    <span style="color:#777;">SHA-2077</span>
+                  </label>
+                  <div class="cyber-input-wrap">
+                    <input
+                      type="password"
+                      id="input-password"
+                      class="cyber-input"
+                      placeholder="••••••••••••••••••••••••••••••"
+                      spellcheck="false"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="login-actions-row">
+                <div class="login-feedback" id="login-feedback-msg">
+                  AGUARDANDO CREDENCIAIS DE NETRUNNER PARA QUEBRA DE ICE...
+                </div>
+                <button type="submit" class="breach-submit-btn" id="btn-login-submit">
+                  EXECUTAR INVASÃO &gt;&gt;
+                </button>
+              </div>
+            </form>
+
+            <!-- Multi-layer password verification steps -->
+            <div class="passkey-chain-bar">
+              <div class="chain-step" id="chain-1"><span>GATE 01: MNL-AUTH</span><span>[LOCKED]</span></div>
+              <div class="chain-step" id="chain-2"><span>GATE 02: RELIC-DB</span><span>[LOCKED]</span></div>
+              <div class="chain-step" id="chain-3"><span>GATE 03: BLACKWALL</span><span>[LOCKED]</span></div>
+              <div class="chain-step" id="chain-4"><span>GATE 04: ELY-VAULT</span><span>[LOCKED]</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           STAGE 2: RAPID NAVIGATION (PROJECT RELIC 2077 + EDGERUNNERS 2 AI)
+           ================================================================= -->
+      <section class="stage-view" id="stage-fast-nav">
+        <div class="fast-nav-layout">
+          <div class="breach-top-banner">
+            <div>
+              <div style="font-size:0.65rem;color:var(--bw-cyan);">HIGH-SPEED SUBNET TRAVERSAL // BYPASSING ARASAKA ICE</div>
+              <div class="breach-path" id="fast-current-path">//ARASAKA_MNL/R&amp;D/PROJECT_RELIC_2077</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="vp-mini-btn" id="btn-pause-fast">[PAUSAR STREAM]</button>
+              <button class="vp-mini-btn" id="btn-skip-to-ely">[IR DIRETO: ELYNALIZE &gt;&gt;]</button>
+            </div>
+          </div>
+
+          <div class="breach-progress-wrap">
+            <div class="breach-progress-fill" id="fast-progress-bar"></div>
+          </div>
+
+          <div class="fast-grid-body">
+            <!-- Left Directory Tree being traversed -->
+            <div class="dir-tree-panel" id="fast-dir-tree">
+              <div class="panel-title"><span>SUBNET DIRECTORIES</span><span>[SCAN]</span></div>
+              <div class="dir-node" data-idx="0">01 // AUTH_HANDSHAKE_MNL</div>
+              <div class="dir-node" data-idx="1">02 // SECURE_YOUR_SOUL_DB</div>
+              <div class="dir-node" data-idx="2">03 // PROJECT_RELIC_2.0 (CP2077)</div>
+              <div class="dir-node" data-idx="3">04 // MIKOSHI_ENGRAM_CLUSTERS</div>
+              <div class="dir-node" data-idx="4">05 // EDGERUNNERS_II_CYBERWARE</div>
+              <div class="dir-node" data-idx="5">06 // EDGERUNNERS_II_AI_CONSTRUCTS</div>
+              <div class="dir-node" data-idx="6">07 // BLACKWALL_HYBRID_DAEMONS</div>
+              <div class="dir-node" data-idx="7">08 // OMEGA_VAULT: ELYNALIZE</div>
+            </div>
+
+            <!-- Right Fast-Flashing Classified Content -->
+            <div class="fast-dossier-viewport">
+              <div>
+                <span class="fast-card-badge" id="fast-card-badge">CLASSIFIED // ARASAKA R&amp;D</span>
+                <div class="fast-card-title" id="fast-card-title">PROJETO RELIC 2.0 — ENGENHARia DE CONSTRUCTOS</div>
+              </div>
+
+              <div class="fast-card-grid">
+                <div class="fast-lore-stream" id="fast-lore-text"></div>
+                <div class="fast-visual-canvas-box">
+                  <div class="viewport-toolbar">
+                    <span id="fast-schematic-label">SCHEMATIC_STREAM.BIN</span>
+                    <span id="fast-packet-rate" style="color:var(--bw-cyan);">14.8 GB/s</span>
+                  </div>
+                  <canvas id="fast-schematic-canvas"></canvas>
+                </div>
+              </div>
+
+              <div class="viewport-footer-bar">
+                <span id="fast-footer-log">SCANNING MEMORY BLOCKS...</span>
+                <span style="color:var(--bw-cyan);">BLACKWALL BREACH INTEGRITY: 99.2%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           STAGE 3: CONTAINMENT OF NETRUNNER "ELYNALIZE" (BYTES REVEAL)
+           ================================================================= -->
+      <section class="stage-view" id="stage-containment">
+        <div class="containment-layout">
+          <!-- Top Omega Containment Banner -->
+          <div class="omega-alert-banner">
+            <div class="omega-title">
+              <span class="omega-blink">OMEGA CONTAINMENT</span>
+              <span>DOSSIÊ #204077 // NEUTRALIZAÇÃO &amp; SEPARAÇÃO DE ALMA: NETRUNNER "ELYNALIZE"</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="vp-mini-btn" id="btn-replay-fast" title="Rever a passagem rápida pelo Projeto Relic e Edgerunners 2">
+                ⟲ [REVER STREAM RELIC / EDGERUNNERS 2]
+              </button>
+            </div>
+          </div>
+
+          <!-- 3 Byte-Reveal Target Tabs + Full Overview + Auto/Manual Toggle -->
+          <div class="reveal-tabs-bar">
+            <button class="reveal-tab-btn active" data-target="elynalize" id="tab-reveal-ely">
+              <span>ARQUIVO 01 // 80,935 BYTES</span>
+              <strong>01. ROSTO: ELYNALIZE (BYTES)</strong>
+            </button>
+            <button class="reveal-tab-btn" data-target="pendrive" id="tab-reveal-pen">
+              <span>ARQUIVO 02 // 135,014 BYTES</span>
+              <strong>02. CHIP: "PENDRIVE" L2-SEC_EP</strong>
+            </button>
+            <button class="reveal-tab-btn" data-target="galpao" id="tab-reveal-galpao">
+              <span>ARQUIVO 03 // 85,917 BYTES</span>
+              <strong>03. LOCAL: GALPÃO SETOR-09</strong>
+            </button>
+            <button class="reveal-tab-btn" data-target="overview" id="tab-reveal-all">
+              <span>MATRIZ COMPLETA // 3 ARQUIVOS</span>
+              <strong>04. VISÃO TRIPLA (TODOS EM BYTES)</strong>
+            </button>
+            <button class="auto-cycle-btn" id="btn-toggle-autocycle" title="Pausar ou continuar avanço automático entre Rosto, Pendrive e Galpão">
+              [AUTO-SEQUÊNCIA: ON (11s)]
+            </button>
+          </div>
+
+          <!-- Main Split Content: Left Lore Dossier + Right Byte Matrix Renderer -->
+          <div class="containment-main-split">
+            <!-- Left Dossier Details -->
+            <div class="dossier-info-column">
+              <div class="subject-header-card">
+                <div class="subject-class" id="dossier-sub-badge">ALVO DE ALTA AMEAÇA // NETRUNNER NÍVEL OMEGA</div>
+                <div class="subject-name" id="dossier-main-heading">ELYNALIZE</div>
+              </div>
+
+              <!-- Mind vs Body Separation Status Diagram -->
+              <div class="severance-diagram">
+                <div class="sev-box mind">
+                  <h4>MENTE &amp; ALMA (CONSCIÊNCIA)</h4>
+                  <div>STATUS: <strong>EXTRAÍDA (SOULKILLER)</strong></div>
+                  <div>MÍDIA: <strong>CHIP "PENDRIVE" L2-SEC_EP</strong></div>
+                  <div>LOCAL: <strong>DEPÓSITO / GALPÃO 09</strong></div>
+                </div>
+                <div class="sev-box body">
+                  <h4>CORPO BIOLÓGICO</h4>
+                  <div>STATUS: <strong>SEPARADO / SEM ALMA</strong></div>
+                  <div>ESTADO: <strong>ESTASE CRIO-NEURAL</strong></div>
+                  <div>LOCAL: <strong>SETOR RESERVADO OFF-SITE</strong></div>
+                </div>
+              </div>
+
+              <!-- Dynamic Lore Description -->
+              <div class="dossier-narrative-text" id="dossier-lore-paragraph">
+                <!-- Populated dynamically per selected tab -->
+              </div>
+
+              <!-- Technical Specs Table -->
+              <ul class="dossier-specs-list" id="dossier-specs-ul">
+                <!-- Populated dynamically per selected tab -->
+              </ul>
+            </div>
+
+            <!-- Right Interactive Byte-Reconstruction Viewport -->
+            <div class="byte-viewport-container">
+              <div class="viewport-toolbar">
+                <div>
+                  <span style="color:var(--ely-violet);font-weight:bold;" id="vp-filename-label">
+                    DECODING: ELYNALIZE_ENGRAM_FACE.RAW
+                  </span>
+                </div>
+                <div class="viewport-controls">
+                  <span style="color:#aaa;font-size:0.62rem;">MODO DE BYTES:</span>
+                  <button class="vp-mini-btn active" data-render-mode="holo" id="rmode-holo">HOLO-BYTES (HD)</button>
+                  <button class="vp-mini-btn" data-render-mode="pure" id="rmode-pure">BITS &amp; HEX PUROS</button>
+                  <button class="vp-mini-btn" data-render-mode="rednet" id="rmode-rednet">ARASAKA RED-BYTE</button>
+                  <button class="vp-mini-btn" id="btn-rescan-bytes">⟲ RE-DECODIFICAR BYTES</button>
+                </div>
+              </div>
+
+              <div class="canvas-stage-wrap" id="byte-canvas-wrap">
+                <canvas id="byte-reveal-canvas"></canvas>
+                <!-- Interactive Byte Inspector Loupe -->
+                <div id="byte-loupe"></div>
+              </div>
+
+              <div class="viewport-footer-bar">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span id="byte-decode-status">RECONSTRUÇÃO EM BYTES: 100%</span>
+                  <div class="byte-progress-inline">
+                    <div class="byte-progress-inline-fill" id="byte-decode-bar"></div>
+                  </div>
+                </div>
+                <div id="byte-cursor-coords">PASSE O CURSOR PARA INSPECIONAR OS BYTES DA IMAGEM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ==================== RIGHT HUD COLUMN (References 2 & 3) ==================== -->
+    <aside class="hud-right">
+      <!-- Numeric Triplet Matrix (Referencia 2 Top-Right) -->
+      <div class="hud-panel chamfer">
+        <div class="panel-title">
+          <span>TELEMETRY // ADDR</span>
+          <span>HEX_DUMP</span>
+        </div>
+        <div class="triplet-matrix" id="right-triplet-list">
+          <div class="triplet-row"><span>0x01</span><span>926. 78. 3301.</span></div>
+          <div class="triplet-row"><span>0x02</span><span>676. 47. 4447.</span></div>
+          <div class="triplet-row"><span>0x03</span><span>955. 96. 7414.</span></div>
+          <div class="triplet-row"><span>0x04</span><span>795. 27. 9558.</span></div>
+          <div class="triplet-row"><span>0x05</span><span>956. 60. 1701.</span></div>
+          <div class="triplet-row" style="margin-top:4px;"><span>0x06</span><span>523. 44. 9533.</span></div>
+          <div class="triplet-row"><span>0x07</span><span>962. 79. 1011.</span></div>
+        </div>
+      </div>
+
+      <!-- [CVSM-101] & TRK Table (Referencia 2 Middle-Right) -->
+      <div class="hud-panel">
+        <div class="cvsm-block">
+          <div class="cvsm-tag">[CVSM-101]</div>
+          <div>LDA--S4685--L8</div>
+          <div>STA-/A1+1</div>
+          <div>A1-/3C &nbsp; A1-/3E</div>
+          <div>A4--SC311</div>
+        </div>
+        <table class="trk-table">
+          <tr><td>TRK 11.</td><td>/8</td></tr>
+          <tr><td>B3FF.</td><td>/9</td></tr>
+          <tr><td>VTOC.</td><td>/10</td></tr>
+          <tr><td>SETUP.</td><td>/11</td></tr>
+          <tr><td>ORG.</td><td>/12</td></tr>
+          <tr><td>JMP.</td><td>/13</td></tr>
+        </table>
+        <div style="text-align:right;margin-top:6px;font-size:0.72rem;color:#fff;">
+          [STA. LDA. SEC.]
+        </div>
+      </div>
+
+      <!-- 13-Node Subnet Diamond Cluster (Referencia 3 Center) -->
+      <div class="hud-panel subnet-diamond-card">
+        <div class="panel-title" style="width:100%;">
+          <span>SUBNET TOPOLOGY</span>
+          <span id="node-cluster-status">NODE_01</span>
+        </div>
+        <div class="diamond-grid" id="subnet-nodes">
+          <div class="diamond-row"><div class="node-dot active"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div><div class="node-dot"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div><div class="node-dot"></div><div class="node-dot"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div><div class="node-dot"></div><div class="node-dot"></div><div class="node-dot"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div><div class="node-dot"></div><div class="node-dot"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div><div class="node-dot"></div></div>
+          <div class="diamond-row"><div class="node-dot"></div></div>
+        </div>
+      </div>
+
+      <!-- Mission Profile & Dense Matrix Block (Referencia 2 & 3 Bottom-Right) -->
+      <div class="hud-panel dense-byte-block">
+        <div class="panel-title">
+          <span>MISSION PROFILE</span>
+          <span>61012</span>
+        </div>
+        <div class="slash-matrix" id="right-slash-matrix"></div>
+        <div class="hydra-callout-footer">
+          <span>W 4035 // C 2047</span>
+          <span>33345 / 13536</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== BOTTOM FOOTER BAR (References 1, 2, 3) ==================== -->
+    <footer class="hud-footer">
+      <div class="css-tag-box">
+        <span>////// CSS.49-05</span>
+        <span style="color:#7d1120;">|</span>
+        <span id="footer-stage-hint">READY FOR ICE BREACH</span>
+      </div>
+
+      <!-- 3 Bottom Navigation Boxes from Referencia 3 -->
+      <div class="hydra-bottom-tabs">
+        <button class="hydra-tab active" id="nav-tab-auth">CYBERWARE &amp; ICE AUTH</button>
+        <button class="hydra-tab" id="nav-tab-relic">SECURITY // RELIC &amp; AI</button>
+        <button class="hydra-tab" id="nav-tab-ely">NETWORK // ELYNALIZE VAULT</button>
+      </div>
+
+      <!-- NETWORK ONLINE 0.801.25.392.1 from Referencia 1 -->
+      <div class="network-online-bar">
+        <span>NETWORK</span>
+        <span class="online-white">ONLINE</span>
+        <span>0.801.25.392.1</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Base64 Pre-encoded Assets (Zero CORS Issues on Local File System) -->
+  <script src="js/assets.js"></script>
+  <!-- Main Netrunner Application Engine -->
+  <script src="js/app.js"></script>
+</body>
+</html>
